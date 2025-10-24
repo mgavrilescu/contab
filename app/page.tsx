@@ -1,6 +1,17 @@
 import Image from "next/image";
 
-export default function Home() {
+import { PrismaClient } from '../lib/generated/prisma-client'
+import { withAccelerate } from '@prisma/extension-accelerate'
+
+const prisma = new PrismaClient().$extends(withAccelerate())
+
+export default async function Home() {
+
+  const users = await prisma.user.findMany({
+  // where: {
+  //   email: { endsWith: "prisma.io" }
+  // },
+})
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
@@ -24,6 +35,13 @@ export default function Home() {
             Save and see your changes instantly.
           </li>
         </ol>
+
+
+{users && users.map(user => (
+          <li key={user.id}>
+            {user.name} ({user.email})
+          </li>
+        ))}
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
