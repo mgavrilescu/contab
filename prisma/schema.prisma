@@ -8,20 +8,158 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  USER
+  MODERATOR
+}
+
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
   name  String?
-  posts Post[]
+  rol   Role    @default(USER)
+  tasks    Task[]
 }
 
-model Post {
+// ====================== ENUMS ======================
+
+enum Tip {
+  SRL
+  PFA
+  II
+  ASOC
+}
+
+enum DaNuNuECazul {
+  DA
+  NU
+  NU_E_CAZUL
+}
+
+enum Impozit {
+  MICRO_1
+  MICRO_3
+  PROFIT
+}
+
+enum PlatitorTVA {
+  DA_LUNAR
+  DA_TRIM
+  NU
+}
+
+enum Administratie {
+  SECTOR_1
+  SECTOR_2
+  SECTOR_3
+  SECTOR_4
+  SECTOR_5
+  SECTOR_6
+  ILFOV
+  BUFTEA
+  BRAGADIRU
+}
+
+// ====================== MODELS ======================
+
+model Customer {
+  id              Int       @id @default(autoincrement())
+  denumire        String
+  tip             Tip
+  cui             String
+  activa          Boolean
+  dataVerificarii DateTime?
+  adresa          String?
+  administratie   Administratie
+
+  impozit         Impozit
+  platitorTVA     PlatitorTVA
+  tvaLaIncasare   Boolean
+  areCodTVAUE     Boolean
+  codTVAUE        String?
+  operatiuneUE    Boolean
+  dividende       Boolean
+  salariati       PlatitorTVA
+  casaDeMarcat    Boolean
+
+  detalii         Detalii?
+  puncteDeLucru   PunctDeLucru[]
+  istorice        Istoric[]
+  tasks           Task[]
+
+  dataExpSediuSocial     DateTime?
+  dataExpMandatAdmin     DateTime?
+  dataCertificatFiscal   DateTime?
+  dataFisaPlatitor       DateTime?
+  dataVectFiscal         DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ====================== DETALII ======================
+
+model Detalii {
+  id                       Int       @id @default(autoincrement())
+  registruUC               Boolean
+  registruEvFiscala        DaNuNuECazul
+  ofSpalareBani            Boolean
+  regulamentOrdineInterioara Boolean
+  manualPoliticiContabile  Boolean
+  adresaRevisal            Boolean
+  parolaITM                String?
+  depunereDeclaratiiOnline Boolean
+  accesDosarFiscal         DaNuNuECazul
+
+  customerId Int      @unique
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+// ====================== PUNCTE DE LUCRU ======================
+
+model PunctDeLucru {
+  id             Int            @id @default(autoincrement())
+  denumire       String
+  deLa           DateTime
+  panaLa         DateTime?
+  administratie  Administratie
+  registruUC     Boolean
+  salariati      Int
+  cui            String?
+  casaDeMarcat   Boolean
+
+  customerId Int      @unique
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+// ====================== ISTORIC ======================
+
+model Istoric {
+  id              Int        @id @default(autoincrement())
+  anul            Int
+  cifraAfaceri    Float
+  inventar        Boolean
+  bilantSemIun    DaNuNuECazul
+  bilantAnual     DaNuNuECazul
+
+  customerId Int      @unique
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+// ====================== TASKS ======================
+
+model Task {
   id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  done      Boolean  @default(false)
   title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  Int
-  author    User     @relation(fields: [authorId], references: [id])
+  notes     String?  // optional
+  blocked   String?  // optional
+  objective String?  // optional
+  date      DateTime
+
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id])
+  customerId Int      @unique
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
