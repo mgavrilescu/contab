@@ -7,19 +7,50 @@ interface UserFormData {
   email: string;
   name: string;
   rol: Role;
+  password?: string;
 }
 
 const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<UserFormData>({
     email: '',
     name: '',
-    rol: 'USER' as Role
+    rol: 'USER' as Role,
+    password: ''
   });
+  const [showReset, setShowReset] = useState<null | number>(null);
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleResetPassword = async () => {
+    if (!showReset) return;
+    setError(null);
+    setSuccess(null);
+    setResetLoading(true);
+    try {
+      const res = await fetch(`/api/users/${showReset}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: resetPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to reset password');
+      setShowReset(null);
+      setResetPassword("");
+      setSuccess('Password updated successfully');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setSuccess(null);
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   // Fetch users
   const fetchUsers = async () => {
@@ -42,17 +73,24 @@ const UserManagement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
     try {
+      setSaving(true);
       const url = editingUser ? `/api/users/${editingUser.id}` : '/api/users';
       const method = editingUser ? 'PUT' : 'POST';
       
+  const payload: UserFormData = { ...formData };
+      if (editingUser) {
+        // For edit, if password is empty string, don't send it
+        if (!payload.password) delete payload.password;
+      }
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -61,9 +99,13 @@ const UserManagement: React.FC = () => {
       }
 
       await fetchUsers();
+      setSuccess(editingUser ? 'User updated successfully' : 'User created successfully');
       resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setSuccess(null);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -84,8 +126,10 @@ const UserManagement: React.FC = () => {
       }
 
       await fetchUsers();
+      setSuccess('User deleted successfully');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setSuccess(null);
     }
   };
 
@@ -105,7 +149,8 @@ const UserManagement: React.FC = () => {
     setFormData({
       email: '',
       name: '',
-      rol: 'USER' as Role
+      rol: 'USER' as Role,
+      password: ''
     });
     setEditingUser(null);
     setShowForm(false);
@@ -133,14 +178,37 @@ const UserManagement: React.FC = () => {
           {error}
         </div>
       )}
+      {success && (
+        <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded mb-4">
+          {success}
+        </div>
+      )}
 
       {/* User Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              {editingUser ? 'Edit User' : 'Add New User'}
-            </h2>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => resetForm()}
+        >
+          <div className="bg-white rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">
+                {editingUser ? 'Edit User' : 'Add New User'}
+              </h2>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={resetForm}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {error}
+              </div>
+            )}
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -171,6 +239,21 @@ const UserManagement: React.FC = () => {
               </div>
 
               <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password {editingUser ? '(leave blank to keep current)' : '*'}
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={formData.password || ''}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  minLength={8}
+                  required={!editingUser}
+                />
+              </div>
+
+              <div>
                 <label htmlFor="rol" className="block text-sm font-medium text-gray-700 mb-1">
                   Role *
                 </label>
@@ -190,9 +273,10 @@ const UserManagement: React.FC = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-medium"
+                  disabled={saving}
+                  className={`flex-1 text-white py-2 px-4 rounded-md font-medium ${saving ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
                 >
-                  {editingUser ? 'Update' : 'Create'} User
+                  {saving ? 'Saving…' : editingUser ? 'Update' : 'Create'} User
                 </button>
                 <button
                   type="button"
@@ -216,7 +300,7 @@ const UserManagement: React.FC = () => {
           </div>
         ) : users.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
-            No users found. Click "Add User" to create your first user.
+            No users found. Click &quot;Add User&quot; to create your first user.
           </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">
@@ -273,6 +357,12 @@ const UserManagement: React.FC = () => {
                     >
                       Delete
                     </button>
+                    <button
+                      onClick={() => setShowReset(user.id)}
+                      className="text-yellow-700 hover:text-yellow-900"
+                    >
+                      Reset Password
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -280,6 +370,59 @@ const UserManagement: React.FC = () => {
           </table>
         )}
       </div>
+
+      {/* Reset Password Modal */}
+      {showReset && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => { setShowReset(null); setResetPassword(""); setError(null); }}
+        >
+          <div className="bg-white rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Reset Password</h2>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => { setShowReset(null); setResetPassword(""); setError(null); }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {error}
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input
+                type="password"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+                minLength={8}
+              />
+              <p className="text-xs text-gray-500 mt-1">Must be at least 8 characters, include upper/lowercase, a number and a symbol.</p>
+            </div>
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={handleResetPassword}
+                disabled={resetLoading}
+                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-md font-medium disabled:opacity-50"
+              >
+                {resetLoading ? 'Updating...' : 'Update Password'}
+              </button>
+              <button
+                onClick={() => { setShowReset(null); setResetPassword(''); }}
+                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
