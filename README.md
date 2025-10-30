@@ -49,3 +49,20 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 Generate Prisma Client
 ```npx prisma generate```
+
+
+## Test task generation
+
+curl -X POST http://localhost:3000/api/tasks/generate \
+-H "Content-Type: application/json" \
+-d '{"frequency": "MONTHLY"}'
+
+# Testare cu frecvența QUARTERLY
+curl -X POST http://localhost:3000/api/tasks/generate \
+-H "Content-Type: application/json" \
+-d '{"frequency": "QUARTERLY"}'
+
+# Testare fără parametru frequency (ar trebui să returneze o eroare)
+curl -X POST http://localhost:3000/api/tasks/generate \
+-H "Content-Type: application/json" \
+-d '{}'
