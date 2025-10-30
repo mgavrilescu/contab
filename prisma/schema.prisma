@@ -164,3 +164,42 @@ model Task {
   customerId Int      @unique
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
+
+// ====================== RULES ======================
+
+model Rule {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique // e.g. "Declaratii 300 si 394"
+  description String?   // human-readable description or notes
+  frequency   Frequency // MONTHLY, QUARTERLY, YEARLY, etc.
+  taskTitle   String    // title for generated task
+  taskNotes   String?   // optional text for generated task
+  active      Boolean   @default(true)
+
+  conditions  RuleCondition[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model RuleCondition {
+  id        Int       @id @default(autoincrement())
+  field     String    // name of the Customer field, e.g. "platitorTVA"
+  operator  ConditionOperator @default(EQUALS)
+  value     String    // stored as text; interpret based on the field
+  ruleId    Int
+  rule      Rule      @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}
+
+enum ConditionOperator {
+  EQUALS
+  NOT_EQUALS
+  IS_TRUE
+  IS_FALSE
+  IN
+}
+
+enum Frequency {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
