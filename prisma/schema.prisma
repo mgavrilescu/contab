@@ -11,7 +11,7 @@ datasource db {
 enum Role {
   ADMIN
   USER
-  MODERATOR
+  MANAGER
 }
 
 model User {
@@ -21,6 +21,8 @@ model User {
   password String?
   rol   Role    @default(USER)
   tasks    Task[]
+
+  customers UserCustomer[] // Many-to-many relationship with Customer
 }
 
 // ====================== ENUMS ======================
@@ -97,6 +99,8 @@ model Customer {
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  users UserCustomer[] // Many-to-many relationship with User
 }
 
 // ====================== DETALII ======================
@@ -202,4 +206,14 @@ enum Frequency {
   MONTHLY
   QUARTERLY
   YEARLY
+}
+
+model UserCustomer {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  customerId Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, customerId]) // Ensure unique user-customer pairs
 }

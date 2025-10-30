@@ -48,16 +48,31 @@ export async function POST(request: Request) {
 
       for (const customer of customers) {
         if (matchesAllConditions(customer, rule.conditions)) {
-          const task = await prisma.task.create({
-            data: {
-              title: rule.taskTitle,
-              notes: rule.taskNotes,
-              date: new Date(),
+          // Fetch users of type USER assigned to the customer
+          const assignedUsers = await prisma.userCustomer.findMany({
+            where: {
               customerId: customer.id,
-              userId: 1, // Replace with actual user ID logic
+              user: {
+                rol: 'USER',
+              },
+            },
+            include: {
+              user: true,
             },
           });
-          tasks.push(task);
+
+          for (const { user } of assignedUsers) {
+            const task = await prisma.task.create({
+              data: {
+                title: rule.taskTitle,
+                notes: rule.taskNotes,
+                date: new Date(),
+                customerId: customer.id,
+                userId: user.id, // Assign task to the user
+              },
+            });
+            tasks.push(task);
+          }
         }
       }
     }
