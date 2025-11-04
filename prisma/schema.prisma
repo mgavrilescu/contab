@@ -134,7 +134,7 @@ model PunctDeLucru {
   cui            String?
   casaDeMarcat   Boolean
 
-  clientId Int    @unique
+  clientId Int
   client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 

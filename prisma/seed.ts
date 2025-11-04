@@ -273,52 +273,90 @@ async function main() {
       dataCertificatFiscal: new Date('2025-03-31'),
       dataFisaPlatitor: new Date('2025-02-31'),
       dataVectFiscal: new Date('2025-12-31'),
-      detalii: {
-        create: {
-          registruUC: true,
-          registruEvFiscala: 'NU',
-          ofSpalareBani: false,
-          regulamentOrdineInterioara: false,
-          manualPoliticiContabile: false,
-          adresaRevisal: true,
-          parolaITM: 'test123',
-          depunereDeclaratiiOnline: true,
-          accesDosarFiscal: 'DA',
-        },
-      },
-      puncteDeLucru: {
-        create: [{
-          denumire: 'Cultul Patriei 38bis, et 2',
-          deLa: new Date('2020-01-01'),
-          administratie: 'SECTOR_3',
-          registruUC: true,
-          salariati: 6,
-          cui: '12345678',
-          casaDeMarcat: false,
-        },
-        {
-          denumire: 'Bd. Independentei 53, et 2, Focsani',
-          deLa: new Date('2020-01-01'),
-          administratie: 'VRANCEA',
-          registruUC: true,
-          salariati: 0,
-          cui: '',
-          casaDeMarcat: false,
-        }],
-      },
-      istorice: {
-        create: {
-          anul: 2024,
-          cifraAfaceri: 150000.00,
-          inventar: false,
-          bilantSemIun: 'NU',
-          bilantAnual: 'DA',
-        },
-      },
     },
   });
 
   console.log('✅ Client seeded with ID:', client.id);
+
+  // Create or update Detalii
+  await prisma.detalii.upsert({
+    where: { clientId: client.id },
+    update: {
+      registruUC: true,
+      registruEvFiscala: 'NU',
+      ofSpalareBani: false,
+      regulamentOrdineInterioara: false,
+      manualPoliticiContabile: false,
+      adresaRevisal: true,
+      parolaITM: 'test123',
+      depunereDeclaratiiOnline: true,
+      accesDosarFiscal: 'DA',
+    },
+    create: {
+      clientId: client.id,
+      registruUC: true,
+      registruEvFiscala: 'NU',
+      ofSpalareBani: false,
+      regulamentOrdineInterioara: false,
+      manualPoliticiContabile: false,
+      adresaRevisal: true,
+      parolaITM: 'test123',
+      depunereDeclaratiiOnline: true,
+      accesDosarFiscal: 'DA',
+    },
+  });
+
+  // Create or update Istoric
+  await prisma.istoric.upsert({
+    where: { clientId: client.id },
+    update: {
+      anul: 2024,
+      cifraAfaceri: 150000.00,
+      inventar: false,
+      bilantSemIun: 'NU',
+      bilantAnual: 'DA',
+    },
+    create: {
+      clientId: client.id,
+      anul: 2024,
+      cifraAfaceri: 150000.00,
+      inventar: false,
+      bilantSemIun: 'NU',
+      bilantAnual: 'DA',
+    },
+  });
+
+  // Delete existing puncte de lucru and create new ones
+  await prisma.punctDeLucru.deleteMany({
+    where: { clientId: client.id },
+  });
+
+  await prisma.punctDeLucru.createMany({
+    data: [
+      {
+        clientId: client.id,
+        denumire: 'Cultul Patriei 38bis, et 2',
+        deLa: new Date('2020-01-01'),
+        administratie: 'SECTOR_3',
+        registruUC: true,
+        salariati: 6,
+        cui: '12345678',
+        casaDeMarcat: false,
+      },
+      {
+        clientId: client.id,
+        denumire: 'Bd. Independentei 53, et 2, Focsani',
+        deLa: new Date('2020-01-01'),
+        administratie: 'VRANCEA',
+        registruUC: true,
+        salariati: 0,
+        cui: '',
+        casaDeMarcat: false,
+      },
+    ],
+  });
+
+  console.log('✅ Client details seeded');
 }
 
 main()
