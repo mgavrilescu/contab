@@ -1,9 +1,9 @@
-import { PrismaClient, Frequency, Customer, RuleCondition } from '@/lib/generated/prisma-client';
+import { PrismaClient, Frequency, Client, RuleCondition } from '@/lib/generated/prisma-client';
 import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-function matchesAllConditions(client: Customer, conditions: RuleCondition[]): boolean {
+function matchesAllConditions(client: Client, conditions: RuleCondition[]): boolean {
   return conditions.every((c) => {
     switch (c.operator) {
       case 'EQUALS':
@@ -44,14 +44,14 @@ export async function POST(request: Request) {
     // Generate tasks based on rules
     const tasks = [];
     for (const rule of rules) {
-      const customers = await prisma.customer.findMany();
+      const clients = await prisma.client.findMany();
 
-      for (const customer of customers) {
-        if (matchesAllConditions(customer, rule.conditions)) {
-          // Fetch users of type USER assigned to the customer
-          const assignedUsers = await prisma.userCustomer.findMany({
+      for (const client of clients) {
+        if (matchesAllConditions(client, rule.conditions)) {
+          // Fetch users of type USER assigned to the client
+          const assignedUsers = await prisma.userClient.findMany({
             where: {
-              customerId: customer.id,
+              clientId: client.id,
               user: {
                 rol: 'USER',
               },
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
                 title: rule.taskTitle,
                 notes: rule.taskNotes,
                 date: new Date(),
-                customerId: customer.id,
+                clientId: client.id,
                 userId: user.id, // Assign task to the user
               },
             });

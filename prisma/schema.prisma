@@ -15,14 +15,13 @@ enum Role {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id       Int            @id @default(autoincrement())
+  email    String         @unique
+  name     String?
   password String?
-  rol   Role    @default(USER)
+  rol      Role           @default(USER)
   tasks    Task[]
-
-  customers UserCustomer[] // Many-to-many relationship with Customer
+  clients  UserClient[]   // Many-to-many relationship with Client
 }
 
 // ====================== ENUMS ======================
@@ -67,7 +66,7 @@ enum Administratie {
 
 // ====================== MODELS ======================
 
-model Customer {
+model Client {
   id              Int       @id @default(autoincrement())
   denumire        String
   tip             Tip
@@ -101,7 +100,7 @@ model Customer {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  users UserCustomer[] // Many-to-many relationship with User
+  users UserClient[] // Many-to-many relationship with User
 }
 
 // ====================== DETALII ======================
@@ -118,8 +117,8 @@ model Detalii {
   depunereDeclaratiiOnline Boolean
   accesDosarFiscal         DaNuNuECazul
 
-  customerId Int      @unique
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  clientId Int    @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 // ====================== PUNCTE DE LUCRU ======================
@@ -135,8 +134,8 @@ model PunctDeLucru {
   cui            String?
   casaDeMarcat   Boolean
 
-  customerId Int      @unique
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  clientId Int    @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 // ====================== ISTORIC ======================
@@ -149,8 +148,8 @@ model Istoric {
   bilantSemIun    DaNuNuECazul
   bilantAnual     DaNuNuECazul
 
-  customerId Int      @unique
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  clientId Int    @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 // ====================== TASKS ======================
@@ -164,10 +163,10 @@ model Task {
   objective String?  // optional
   date      DateTime
 
-  userId     Int      @unique
-  user       User     @relation(fields: [userId], references: [id])
-  customerId Int      @unique
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  userId   Int    @unique
+  user     User   @relation(fields: [userId], references: [id])
+  clientId Int    @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 // ====================== RULES ======================
@@ -209,12 +208,12 @@ enum Frequency {
   YEARLY
 }
 
-model UserCustomer {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  customerId Int
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+model UserClient {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  clientId Int
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, customerId]) // Ensure unique user-customer pairs
+  @@unique([userId, clientId]) // Ensure unique user-client pairs
 }

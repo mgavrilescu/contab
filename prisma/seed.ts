@@ -226,10 +226,10 @@ async function main() {
 
   console.log('✅ Rules seeded');
 
-  // ==== CUSTOMERS ====
-  console.log('🌱 Seeding customers...');
+  // ==== CLIENTS ====
+  console.log('🌱 Seeding clients...');
 
-  const customer = await prisma.customer.upsert({
+  const client = await prisma.client.upsert({
     where: { cui: 'RO35844614' },
     update: {
       denumire: 'Voitto Tethys SRL',
@@ -318,7 +318,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Customer seeded with ID:', customer.id);
+  console.log('✅ Client seeded with ID:', client.id);
 }
 
 main()
