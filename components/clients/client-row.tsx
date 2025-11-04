@@ -8,7 +8,7 @@ import { flexRender } from "@tanstack/react-table";
 // Extend this if you want per-row actions, hover menus, etc.
 export function ClientRow<TData>({ row }: { row: Row<TData> }) {
   return (
-    <TableRow data-state={row.getIsSelected() && "selected"} className="odd:bg-white even:bg-gray-50">
+    <TableRow data-state={row.getIsSelected() && "selected"} className="transition-colors">
       {row.getVisibleCells().map((cell) => (
         <TableCell key={cell.id} className="px-4 py-2 border-b">
           {flexRender(cell.column.columnDef.cell, cell.getContext())}

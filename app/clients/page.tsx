@@ -68,47 +68,58 @@ export default function ClientsPage() {
     {
       accessorKey: "name",
       header: "Firma",
+      enableSorting: true,
       cell: ({ row }) => (
-        <span className="text-blue-700 underline">
+        <span className="text-primary underline">
           <Link href="#">{row.original.name}</Link>
         </span>
       ),
     },
-    { accessorKey: "tip", header: "Tip" },
+    { accessorKey: "tip", header: "Tip", enableSorting: true },
     {
       accessorKey: "deLa",
-      header: "De la",
+      header: () => <div className="w-36 min-w-[9rem]">De la</div>,
+      enableSorting: true,
       cell: ({ row }) => (
-        <Input type="date" defaultValue={row.original.deLa} className="h-8 px-2 py-1" />
+        <div className="w-36 min-w-[9rem]">
+          <Input type="date" defaultValue={row.original.deLa} className="h-8 px-2 py-1 text-sm w-full" />
+        </div>
       ),
     },
     {
       accessorKey: "panaLa",
-      header: "Pana la",
-      cell: ({ row }) =>
-        row.original.panaLa ? (
-          <Input type="date" defaultValue={row.original.panaLa} className="h-8 px-2 py-1" />
-        ) : (
-          <Button variant="destructive" size="sm">incheie</Button>
-        ),
+      header: () => <div className="w-36 min-w-[9rem]">Pana la</div>,
+      enableSorting: true,
+      cell: ({ row }) => (
+        <div className="w-36 min-w-[9rem]">
+          {row.original.panaLa ? (
+            <Input type="date" defaultValue={row.original.panaLa} className="h-8 px-2 py-1 text-sm w-full" />
+          ) : (
+            <Button variant="destructive" size="sm">incheie</Button>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: "tarifConta",
       header: "Tarif servicii conta",
+      enableSorting: true,
       cell: ({ row }) => (
-        <Input type="number" defaultValue={row.original.tarifConta} className="h-8 px-2 py-1 w-24" />
+        <Input type="number" defaultValue={row.original.tarifConta} className="h-8 px-2 py-1 w-24 text-sm" />
       ),
     },
     {
       accessorKey: "tarifBilant",
       header: "Tarif bilant",
+      enableSorting: true,
       cell: ({ row }) => (
-        <Input type="number" defaultValue={row.original.tarifBilant} className="h-8 px-2 py-1 w-24" />
+        <Input type="number" defaultValue={row.original.tarifBilant} className="h-8 px-2 py-1 w-24 text-sm" />
       ),
     },
     {
       accessorKey: "contractGen",
       header: "Contract generat",
+      enableSorting: false,
       cell: ({ row }) =>
         row.original.contractGen ? (
           <span className="text-blue-700 underline">
@@ -121,6 +132,7 @@ export default function ClientsPage() {
     {
       accessorKey: "contractSemnat",
       header: "Contract semnat",
+      enableSorting: false,
       cell: ({ row }) =>
         row.original.contractSemnat ? (
           <span className="text-blue-700 underline">
@@ -133,6 +145,7 @@ export default function ClientsPage() {
     {
       id: "probleme",
       header: "Probleme",
+      enableSorting: false,
       cell: ({ row }) =>
         row.original.probleme ? (
           <ul className="list-disc pl-4 space-y-1">
@@ -146,29 +159,13 @@ export default function ClientsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top nav (simplified) */}
-      <nav className="bg-gray-900 text-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <span className="text-2xl font-semibold tracking-tight">ConTask</span>
-            <div className="hidden md:flex items-center gap-4 text-sm">
-              <Link href="#" className="hover:underline">Situatie</Link>
-              <Link href="#" className="hover:underline">Taskuri</Link>
-              <Link href="#" className="underline">Clienti</Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 text-sm">
-            <span className="text-gray-300">Welcome, ElenaO</span>
-            <Link href="/signin" className="hover:underline">Logout</Link>
-          </div>
-        </div>
-      </nav>
+    <div className="p-6 space-y-4">
 
-      {/* Controls */}
-      <div className="bg-gray-100 border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex flex-wrap items-center gap-3">
+
+      <div>
+
+        <div>
+          <div className="mb-4 flex flex-wrap items-center gap-3">
             <label className="inline-flex items-center gap-2 text-sm">
               <Checkbox
                 checked={showFormer}
@@ -176,27 +173,26 @@ export default function ClientsPage() {
               />
               Afiseaza fostii clienti
             </label>
-            <Button variant="outline" size="sm">
-              <span className="i-plus">+</span> client nou
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setOpenCabinet(true)}>
-              <span className="i-edit">✎</span> date cabinet
-            </Button>
+            <div className="ml-auto flex gap-2">
+              <Button variant="outline" size="sm">
+                <span className="i-plus">+</span> client nou
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setOpenCabinet(true)}>
+                <span className="i-edit">✎</span> date cabinet
+              </Button>
+            </div>
           </div>
+
+          <DataTable
+            columns={columns}
+            data={data}
+            pageSize={10}
+            rowComponent={ClientRow}
+            stickyHeader
+          />
         </div>
       </div>
 
-      {/* Table with @tanstack/react-table */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <DataTable
-          columns={columns}
-          data={data}
-          pageSize={10}
-          rowComponent={ClientRow}
-        />
-      </div>
-
-      {/* Cabinet modal */}
       <Dialog open={openCabinet} onOpenChange={setOpenCabinet}>
         <DialogContent>
           <DialogHeader>

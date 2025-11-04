@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
+// import Link from "next/link";
+import { ConditionalShell } from "@/components/conditional-shell";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { AuthProvider } from "@/components/auth/auth-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,42 +22,24 @@ export const metadata: Metadata = {
   description: "A contact management application",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+  const isAdmin = (session?.user as unknown as { role?: string })?.role === "ADMIN";
+  const userName = (session?.user?.name as string) ?? (session?.user?.email as string) ?? "";
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-x-hidden overscroll-x-contain">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}
       >
-        <nav className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center space-x-8">
-                <Link href="/" className="text-xl font-bold text-gray-900">
-                  Contab
-                </Link>
-                <div className="hidden sm:flex space-x-4">
-                  <Link 
-                    href="/" 
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    Home
-                  </Link>
-                  <Link 
-                    href="/users" 
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    User Management
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
-        {children}
+        <AuthProvider session={session}>
+          <ConditionalShell isAdmin={isAdmin} userName={userName}>
+            {children}
+          </ConditionalShell>
+        </AuthProvider>
       </body>
     </html>
   );

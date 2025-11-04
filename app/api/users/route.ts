@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const body = await request.json();
-  const { email, name, rol, password } = body as { email?: string; name?: string; rol?: 'ADMIN'|'USER'|'MODERATOR'; password?: string };
+  const { email, name, rol, password } = body as { email?: string; name?: string; rol?: 'ADMIN'|'USER'|'MANAGER'; password?: string };
 
     if (!email || !rol) {
       return NextResponse.json(
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data: { email: string; name: string | null; rol: 'ADMIN'|'USER'|'MODERATOR'; password?: string } = { email, name: name || null, rol };
+  const data: { email: string; name: string | null; rol: 'ADMIN'|'USER'|'MANAGER'; password?: string } = { email, name: name || null, rol };
     if (password && typeof password === 'string') {
       const meetsComplexity = (pwd: string) => /[A-Z]/.test(pwd) && /[a-z]/.test(pwd) && /\d/.test(pwd) && /[^A-Za-z0-9]/.test(pwd) && pwd.length >= 8;
       if (!meetsComplexity(password)) {

@@ -1,17 +1,17 @@
-import { PrismaClient, Frequency } from '@/lib/generated/prisma-client';
+import { PrismaClient, Frequency, Customer, RuleCondition } from '@/lib/generated/prisma-client';
 import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-function matchesAllConditions(client: any, conditions: any[]): boolean {
+function matchesAllConditions(client: Customer, conditions: RuleCondition[]): boolean {
   return conditions.every((c) => {
     switch (c.operator) {
       case 'EQUALS':
-        return client[c.field] === c.value;
+        return (client as unknown as Record<string, unknown>)[c.field] === c.value;
       case 'IN':
-        return c.value.split(',').includes(client[c.field]);
+        return c.value.split(',').includes(String((client as unknown as Record<string, unknown>)[c.field]));
       case 'IS_TRUE':
-        return Boolean(client[c.field]);
+        return Boolean((client as unknown as Record<string, unknown>)[c.field]);
       default:
         return false;
     }

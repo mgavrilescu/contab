@@ -68,7 +68,7 @@ export async function PUT(
     }
 
   const body = await request.json();
-  const { email, name, rol, password } = body as { email?: string; name?: string; rol?: 'ADMIN'|'USER'|'MODERATOR'; password?: string };
+  const { email, name, rol, password } = body as { email?: string; name?: string; rol?: 'ADMIN'|'USER'|'MANAGER'; password?: string };
 
     if (!email || !rol) {
       return NextResponse.json(
@@ -77,7 +77,7 @@ export async function PUT(
       );
     }
 
-    const data: { email: string; name: string | null; rol: 'ADMIN'|'USER'|'MODERATOR'; password?: string } = {
+  const data: { email: string; name: string | null; rol: 'ADMIN'|'USER'|'MANAGER'; password?: string } = {
       email,
       name: name || null,
       rol,
