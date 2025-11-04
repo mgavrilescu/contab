@@ -62,6 +62,7 @@ enum Administratie {
   ILFOV
   BUFTEA
   BRAGADIRU
+  VRANCEA
 }
 
 // ====================== MODELS ======================
@@ -70,7 +71,7 @@ model Customer {
   id              Int       @id @default(autoincrement())
   denumire        String
   tip             Tip
-  cui             String
+  cui             String    @unique
   activa          Boolean
   dataVerificarii DateTime?
   adresa          String?

@@ -225,6 +225,100 @@ async function main() {
   }
 
   console.log('✅ Rules seeded');
+
+  // ==== CUSTOMERS ====
+  console.log('🌱 Seeding customers...');
+
+  const customer = await prisma.customer.upsert({
+    where: { cui: 'RO35844614' },
+    update: {
+      denumire: 'Voitto Tethys SRL',
+      tip: 'SRL',
+      activa: true,
+      dataVerificarii: new Date('2024-01-15'),
+      adresa: 'Str. Dumitru Ruse, nr. 17, Bucuresti ',
+      administratie: 'SECTOR_5',
+      impozit: 'PROFIT',
+      platitorTVA: 'DA_LUNAR',
+      tvaLaIncasare: true,
+      areCodTVAUE: true,
+      operatiuneUE: true,
+      dividende: true,
+      salariati: 'DA_LUNAR',
+      casaDeMarcat: false,
+      dataExpSediuSocial: new Date('2026-12-31'),
+      dataExpMandatAdmin: new Date('2026-06-30'),
+      dataCertificatFiscal: new Date('2025-03-31'),
+      dataFisaPlatitor: new Date('2025-02-31'),
+      dataVectFiscal: new Date('2025-12-31'),
+    },
+    create: {
+      denumire: 'Voitto Tethys SRL',
+      tip: 'SRL',
+      cui: 'RO35844614',
+      activa: true,
+      dataVerificarii: new Date('2024-01-15'),
+      adresa: 'Str. Dumitru Ruse, nr. 17, Bucuresti ',
+      administratie: 'SECTOR_5',
+      impozit: 'PROFIT',
+      platitorTVA: 'DA_LUNAR',
+      tvaLaIncasare: true,
+      areCodTVAUE: true,
+      operatiuneUE: true,
+      dividende: true,
+      salariati: 'DA_LUNAR',
+      casaDeMarcat: false,
+      dataExpSediuSocial: new Date('2026-12-31'),
+      dataExpMandatAdmin: new Date('2026-06-30'),
+      dataCertificatFiscal: new Date('2025-03-31'),
+      dataFisaPlatitor: new Date('2025-02-31'),
+      dataVectFiscal: new Date('2025-12-31'),
+      detalii: {
+        create: {
+          registruUC: true,
+          registruEvFiscala: 'NU',
+          ofSpalareBani: false,
+          regulamentOrdineInterioara: false,
+          manualPoliticiContabile: false,
+          adresaRevisal: true,
+          parolaITM: 'test123',
+          depunereDeclaratiiOnline: true,
+          accesDosarFiscal: 'DA',
+        },
+      },
+      puncteDeLucru: {
+        create: [{
+          denumire: 'Cultul Patriei 38bis, et 2',
+          deLa: new Date('2020-01-01'),
+          administratie: 'SECTOR_3',
+          registruUC: true,
+          salariati: 6,
+          cui: '12345678',
+          casaDeMarcat: false,
+        },
+        {
+          denumire: 'Bd. Independentei 53, et 2, Focsani',
+          deLa: new Date('2020-01-01'),
+          administratie: 'VRANCEA',
+          registruUC: true,
+          salariati: 0,
+          cui: '',
+          casaDeMarcat: false,
+        }],
+      },
+      istorice: {
+        create: {
+          anul: 2024,
+          cifraAfaceri: 150000.00,
+          inventar: false,
+          bilantSemIun: 'NU',
+          bilantAnual: 'DA',
+        },
+      },
+    },
+  });
+
+  console.log('✅ Customer seeded with ID:', customer.id);
 }
 
 main()
