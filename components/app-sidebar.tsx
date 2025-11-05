@@ -100,8 +100,8 @@ export function AppSidebar({ isAdmin, ...props }: React.ComponentProps<typeof Si
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">MicroCRM</span>
+                <IconInnerShadowTop className="!size-5 text-indigo-800" />
+                <span className="text-base font-semibold text-indigo-800">MicroCRM</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
