@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
 import type { $Enums } from "@/lib/generated/prisma-client";
 
 export type PunctFormValues = {
@@ -29,6 +31,7 @@ type Props = {
 
 export default function ClientPunctForm({ initial, onSubmit, submitLabel = "Save", onDelete }: Props) {
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   // Controlled state for all fields
   const [denumire, setDenumire] = useState(initial?.denumire ?? "");
   const [administratie, setAdministratie] = useState<$Enums.Administratie>(initial?.administratie ?? "SECTOR_1");
@@ -161,12 +164,48 @@ export default function ClientPunctForm({ initial, onSubmit, submitLabel = "Save
       </div>
 
       <div className="md:col-span-2 flex justify-between gap-2 mt-4">
-        {onDelete ? (
-          <Button type="button" variant="destructive" disabled={busy} onClick={async () => { await onDelete(); }}>
-            Sterge
-          </Button>
-        ) : <span />}
         <Button type="submit" disabled={busy}>{submitLabel}</Button>
+        {onDelete ? (
+          <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+                disabled={busy}
+                aria-label="Sterge"
+                title="Sterge"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirma stergerea</DialogTitle>
+                <DialogDescription>Esti sigur ca vrei sa stergi acest punct de lucru? Actiunea nu poate fi anulata.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="secondary" type="button" onClick={() => setConfirmOpen(false)} disabled={busy}>Anuleaza</Button>
+                <Button
+                  variant="destructive"
+                  type="button"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      await onDelete();
+                      setConfirmOpen(false);
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  Sterge
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ) : <span />}
       </div>
     </form>
   );
