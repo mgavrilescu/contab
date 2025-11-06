@@ -7,8 +7,8 @@ import { getClientDetalii, upsertClientDetalii } from "@/actions/client-detalii"
 import ClientDetaliiForm from "@/components/clients/client-detalii-form";
 import { getClientPuncteDeLucru, upsertClientPunctDeLucru, deleteClientPunctDeLucru } from "@/actions/client-punct";
 import ClientPunctPanels from "@/components/clients/client-punct-panels";
-import { getClientIstoric, upsertClientIstoric } from "@/actions/client-istoric";
-import ClientIstoricForm from "@/components/clients/client-istoric-form";
+import { getClientIstoricList, upsertClientIstoric, deleteClientIstoric } from "@/actions/client-istoric";
+import ClientIstoricPanels from "@/components/clients/client-istoric-panels";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +19,10 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
 
   const client = await getClient(id);
   if (!client) return notFound();
-  const [detalii, puncte, istoric] = await Promise.all([
+  const [detalii, puncte, istoricList] = await Promise.all([
     getClientDetalii(id),
     getClientPuncteDeLucru(id),
-    getClientIstoric(id),
+    getClientIstoricList(id),
   ]);
 
   async function onSubmit(fd: FormData) {
@@ -70,10 +70,20 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
           />
         </TabsContent>
         <TabsContent value="istoric" className="pt-4" forceMount>
-          <ClientIstoricForm
-            initial={istoric ?? undefined}
-            onSubmit={upsertClientIstoric.bind(null, id)}
-            submitLabel="Salveaza istoric"
+          <ClientIstoricPanels
+            rows={istoricList}
+            onSave={async (fd: FormData) => {
+              "use server";
+              return await upsertClientIstoric(id, fd);
+            }}
+            onCreate={async (fd: FormData) => {
+              "use server";
+              return await upsertClientIstoric(id, fd);
+            }}
+            onDelete={async (rowId: number) => {
+              "use server";
+              await deleteClientIstoric(id, rowId);
+            }}
           />
         </TabsContent>
       </Tabs>

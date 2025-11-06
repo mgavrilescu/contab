@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
 import type { $Enums } from "@/lib/generated/prisma-client";
 
 export type IstoricFormValues = {
+  id?: number;
   anul: number;
   cifraAfaceri: number;
   inventar: boolean;
@@ -21,10 +23,12 @@ type Props = {
   initial?: Partial<IstoricFormValues>;
   onSubmit: (formData: FormData) => Promise<IstoricFormValues | void>;
   submitLabel?: string;
+  onDelete?: () => Promise<void>;
 };
 
-export default function ClientIstoricForm({ initial, onSubmit, submitLabel = "Save" }: Props) {
+export default function ClientIstoricForm({ initial, onSubmit, submitLabel = "Save", onDelete }: Props) {
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [anul, setAnul] = useState<number>(initial?.anul ?? new Date().getFullYear());
   const [cifraAfaceri, setCifraAfaceri] = useState<number>(initial?.cifraAfaceri ?? 0);
   const [inventar, setInventar] = useState<boolean>(initial?.inventar ?? false);
@@ -43,6 +47,12 @@ export default function ClientIstoricForm({ initial, onSubmit, submitLabel = "Sa
   async function handleAction(fd: FormData) {
     setBusy(true);
     try {
+      // Ensure latest controlled values are submitted
+      fd.set("anul", String(anul));
+      fd.set("cifraAfaceri", String(cifraAfaceri ?? 0));
+      fd.set("bilantSemIun", bilantSemIun);
+      fd.set("bilantAnual", bilantAnual);
+      fd.set("inventar", inventar ? "true" : "false");
       const saved = await onSubmit(fd);
       if (saved) {
         setAnul(saved.anul);
@@ -51,7 +61,6 @@ export default function ClientIstoricForm({ initial, onSubmit, submitLabel = "Sa
         setBilantSemIun(saved.bilantSemIun);
         setBilantAnual(saved.bilantAnual);
       }
-      toast.success("Istoric salvat");
     } finally {
       setBusy(false);
     }
@@ -59,6 +68,9 @@ export default function ClientIstoricForm({ initial, onSubmit, submitLabel = "Sa
 
   return (
     <form action={handleAction} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {typeof initial?.id === "number" ? (
+        <input type="hidden" name="id" value={String(initial.id)} />
+      ) : null}
       <div>
         <Label className="mb-2 text-purple-800">Anul</Label>
         <Input type="number" name="anul" value={anul} onChange={(e) => setAnul(parseInt(e.target.value || "0", 10) || 0)} required />
@@ -102,8 +114,49 @@ export default function ClientIstoricForm({ initial, onSubmit, submitLabel = "Sa
         </div>
       </div>
 
-      <div className="md:col-span-2 flex justify-end gap-2 mt-4">
+      <div className="md:col-span-2 flex justify-between gap-2 mt-4">
         <Button type="submit" disabled={busy}>{submitLabel}</Button>
+        {onDelete ? (
+          <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+                disabled={busy}
+                aria-label="Sterge"
+                title="Sterge"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirma stergerea</DialogTitle>
+                <DialogDescription>Esti sigur ca vrei sa stergi acest istoric? Actiunea nu poate fi anulata.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="secondary" type="button" onClick={() => setConfirmOpen(false)} disabled={busy}>Anuleaza</Button>
+                <Button
+                  variant="destructive"
+                  type="button"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      await onDelete();
+                      setConfirmOpen(false);
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  Sterge
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        ) : <span />}
       </div>
     </form>
   );
