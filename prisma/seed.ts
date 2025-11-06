@@ -249,7 +249,7 @@ async function main() {
       dataExpSediuSocial: new Date('2026-12-31'),
       dataExpMandatAdmin: new Date('2026-06-30'),
       dataCertificatFiscal: new Date('2025-03-31'),
-      dataFisaPlatitor: new Date('2025-02-31'),
+  dataFisaPlatitor: new Date('2025-02-28'),
       dataVectFiscal: new Date('2025-12-31'),
     },
     create: {
@@ -271,7 +271,7 @@ async function main() {
       dataExpSediuSocial: new Date('2026-12-31'),
       dataExpMandatAdmin: new Date('2026-06-30'),
       dataCertificatFiscal: new Date('2025-03-31'),
-      dataFisaPlatitor: new Date('2025-02-31'),
+  dataFisaPlatitor: new Date('2025-02-28'),
       dataVectFiscal: new Date('2025-12-31'),
     },
   });
@@ -306,25 +306,30 @@ async function main() {
     },
   });
 
-  // Create or update Istoric
-  await prisma.istoric.upsert({
-    where: { clientId: client.id },
-    update: {
-      anul: 2024,
-      cifraAfaceri: 150000.00,
-      inventar: false,
-      bilantSemIun: 'NU',
-      bilantAnual: 'DA',
-    },
-    create: {
-      clientId: client.id,
-      anul: 2024,
-      cifraAfaceri: 150000.00,
-      inventar: false,
-      bilantSemIun: 'NU',
-      bilantAnual: 'DA',
-    },
-  });
+  // Create or update Istoric (use manual upsert on composite [clientId, anul])
+  const existingIstoric = await prisma.istoric.findFirst({ where: { clientId: client.id, anul: 2024 } });
+  if (existingIstoric) {
+    await prisma.istoric.update({
+      where: { id: existingIstoric.id },
+      data: {
+        cifraAfaceri: 150000.0,
+        inventar: false,
+        bilantSemIun: 'NU',
+        bilantAnual: 'DA',
+      },
+    });
+  } else {
+    await prisma.istoric.create({
+      data: {
+        clientId: client.id,
+        anul: 2024,
+        cifraAfaceri: 150000.0,
+        inventar: false,
+        bilantSemIun: 'NU',
+        bilantAnual: 'DA',
+      },
+    });
+  }
 
   // Delete existing puncte de lucru and create new ones
   await prisma.punctDeLucru.deleteMany({
