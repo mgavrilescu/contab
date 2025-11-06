@@ -6,6 +6,7 @@ import { ConditionalShell } from "@/components/conditional-shell";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default async function RootLayout({
             {children}
           </ConditionalShell>
         </AuthProvider>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );
