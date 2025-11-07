@@ -47,7 +47,7 @@ enum Impozit {
   PROFIT
 }
 
-enum PlatitorTVA {
+enum DaLunarTrim {
   DA_LUNAR
   DA_TRIM
   NU
@@ -286,15 +286,15 @@ model Client {
   adresa          String?
   administratie   Administratie
 
-  impozit         Impozit
-  platitorTVA     PlatitorTVA
-  tvaLaIncasare   Boolean
-  areCodTVAUE     Boolean
+  impozit         Impozit?
+  platitorTVA     DaLunarTrim @map("DaLunarTrim")
+  tvaLaIncasare   Boolean?
+  areCodTVAUE     Boolean?
   codTVAUE        String?
-  operatiuneUE    Boolean
-  dividende       Boolean
-  salariati       PlatitorTVA
-  casaDeMarcat    Boolean
+  operatiuneUE    Boolean?
+  dividende       Boolean?
+  salariati       DaLunarTrim?
+  casaDeMarcat    Boolean?
 
   detalii         Detalii?
   puncteDeLucru   PunctDeLucru[]
@@ -399,7 +399,7 @@ model Rule {
 
 model RuleCondition {
   id        Int       @id @default(autoincrement())
-  field     String    // name of the Customer field, e.g. "platitorTVA"
+  field     String    // name of the Customer field, e.g. "DaLunarTrim"
   operator  ConditionOperator @default(EQUALS)
   value     String    // stored as text; interpret based on the field
   ruleId    Int
