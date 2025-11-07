@@ -20,13 +20,13 @@ export type ClientFormValues = {
   adresa?: string;
   administratie: $Enums.Administratie;
   impozit: $Enums.Impozit;
-  platitorTVA: $Enums.PlatitorTVA;
+  platitorTVA: $Enums.DaLunarTrim;
   tvaLaIncasare: boolean;
   areCodTVAUE: boolean;
   codTVAUE?: string;
   operatiuneUE: boolean;
   dividende: boolean;
-  salariati: $Enums.PlatitorTVA;
+  salariati: $Enums.DaLunarTrim;
   casaDeMarcat: boolean;
   dataExpSediuSocial?: string;
   dataExpMandatAdmin?: string;
@@ -135,8 +135,8 @@ export default function ClientForm({ initial, onSubmit, submitLabel = "Save" }: 
   const [tip, setTip] = useState<$Enums.Tip>(initial?.tip ?? "SRL");
   const [administratie, setAdministratie] = useState<$Enums.Administratie>(initial?.administratie ?? "SECTOR_5");
   const [impozit, setImpozit] = useState<$Enums.Impozit>(initial?.impozit ?? "MICRO_1");
-  const [platitorTVA, setPlatitorTVA] = useState<$Enums.PlatitorTVA>(initial?.platitorTVA ?? "NU");
-  const [salariati, setSalariati] = useState<$Enums.PlatitorTVA>(initial?.salariati ?? "NU");
+  const [platitorTVA, setPlatitorTVA] = useState<$Enums.DaLunarTrim>(initial?.platitorTVA ?? "NU");
+  const [salariati, setSalariati] = useState<$Enums.DaLunarTrim>(initial?.salariati ?? "NU");
 
   // Sync when initial changes (navigation or server-provided fresh data)
   useEffect(() => {
@@ -221,10 +221,10 @@ export default function ClientForm({ initial, onSubmit, submitLabel = "Save" }: 
       </div>
       <div>
         <Label className="mb-2 text-indigo-800">Platitor TVA</Label>
-        <Select value={platitorTVA} onValueChange={(v: $Enums.PlatitorTVA) => setPlatitorTVA(v)}>
+        <Select value={platitorTVA} onValueChange={(v: $Enums.DaLunarTrim) => setPlatitorTVA(v)}>
           <SelectTrigger><SelectValue placeholder="Selecteaza" /></SelectTrigger>
           <SelectContent>
-            {(["DA_LUNAR","DA_TRIM","NU"] as $Enums.PlatitorTVA[]).map(v => (
+            {(["DA_LUNAR","DA_TRIM","NU"] as $Enums.DaLunarTrim[]).map(v => (
               <SelectItem key={v} value={v}>{v}</SelectItem>
             ))}
           </SelectContent>
@@ -236,10 +236,10 @@ export default function ClientForm({ initial, onSubmit, submitLabel = "Save" }: 
       </div>
       <div>
         <Label className="mb-2 text-indigo-800">Salariati</Label>
-        <Select value={salariati} onValueChange={(v: $Enums.PlatitorTVA) => setSalariati(v)}>
+        <Select value={salariati} onValueChange={(v: $Enums.DaLunarTrim) => setSalariati(v)}>
           <SelectTrigger><SelectValue placeholder="Selecteaza" /></SelectTrigger>
           <SelectContent>
-            {(["DA_LUNAR","DA_TRIM","NU"] as $Enums.PlatitorTVA[]).map(v => (
+            {(["DA_LUNAR","DA_TRIM","NU"] as $Enums.DaLunarTrim[]).map(v => (
               <SelectItem key={v} value={v}>{v}</SelectItem>
             ))}
           </SelectContent>
