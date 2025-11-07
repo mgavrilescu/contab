@@ -80,15 +80,15 @@ export type ClientDetails = {
   dataVerificarii?: string
   adresa?: string
   administratie: $Enums.Administratie
-  impozit: $Enums.Impozit
-  platitorTVA: $Enums.PlatitorTVA
-  tvaLaIncasare: boolean
-  areCodTVAUE: boolean
+  impozit: $Enums.Impozit | null
+  platitorTVA: $Enums.DaLunarTrim
+  tvaLaIncasare: boolean | null
+  areCodTVAUE: boolean | null
   codTVAUE?: string
-  operatiuneUE: boolean
-  dividende: boolean
-  salariati: $Enums.PlatitorTVA
-  casaDeMarcat: boolean
+  operatiuneUE: boolean | null
+  dividende: boolean | null
+  salariati: $Enums.DaLunarTrim | null
+  casaDeMarcat: boolean | null
   dataExpSediuSocial?: string
   dataExpMandatAdmin?: string
   dataCertificatFiscal?: string
@@ -197,13 +197,13 @@ export async function createClient(formData: FormData) {
   const administratie = formData.get("administratie") as $Enums.Administratie;
 
   const impozit = formData.get("impozit") as $Enums.Impozit;
-  const platitorTVA = formData.get("platitorTVA") as $Enums.PlatitorTVA;
+  const platitorTVA = formData.get("platitorTVA") as $Enums.DaLunarTrim;
   const tvaLaIncasare = bool(formData.get("tvaLaIncasare"));
   const areCodTVAUE = bool(formData.get("areCodTVAUE"));
   const codTVAUE = str(formData.get("codTVAUE"));
   const operatiuneUE = bool(formData.get("operatiuneUE"));
   const dividende = bool(formData.get("dividende"));
-  const salariati = formData.get("salariati") as $Enums.PlatitorTVA;
+  const salariati = formData.get("salariati") as $Enums.DaLunarTrim;
   const casaDeMarcat = bool(formData.get("casaDeMarcat"));
 
   const dataExpSediuSocial = dateStr(formData.get("dataExpSediuSocial"));
@@ -257,13 +257,13 @@ export async function updateClient(id: number, formData: FormData) {
   const administratie = str(formData.get("administratie")) as $Enums.Administratie | undefined;
 
   const impozit = str(formData.get("impozit")) as $Enums.Impozit | undefined;
-  const platitorTVA = str(formData.get("platitorTVA")) as $Enums.PlatitorTVA | undefined;
+  const platitorTVA = str(formData.get("platitorTVA")) as $Enums.DaLunarTrim | undefined;
   const tvaLaIncasareMaybe = formData.get("tvaLaIncasare");
   const areCodTVAUEMaybe = formData.get("areCodTVAUE");
   const codTVAUE = str(formData.get("codTVAUE"));
   const operatiuneUEMaybe = formData.get("operatiuneUE");
   const dividendeMaybe = formData.get("dividende");
-  const salariati = str(formData.get("salariati")) as $Enums.PlatitorTVA | undefined;
+  const salariati = str(formData.get("salariati")) as $Enums.DaLunarTrim | undefined;
   const casaDeMarcatMaybe = formData.get("casaDeMarcat");
 
   const dataExpSediuSocial = dateStr(formData.get("dataExpSediuSocial"));

@@ -19,15 +19,16 @@ export type ClientFormValues = {
   dataVerificarii?: string;
   adresa?: string;
   administratie: $Enums.Administratie;
-  impozit: $Enums.Impozit;
+  // Allow nullable impozit to align with server type; default will be applied if null
+  impozit: $Enums.Impozit | null;
   platitorTVA: $Enums.DaLunarTrim;
-  tvaLaIncasare: boolean;
-  areCodTVAUE: boolean;
+  tvaLaIncasare: boolean | null;
+  areCodTVAUE: boolean | null;
   codTVAUE?: string;
-  operatiuneUE: boolean;
-  dividende: boolean;
-  salariati: $Enums.DaLunarTrim;
-  casaDeMarcat: boolean;
+  operatiuneUE: boolean | null;
+  dividende: boolean | null;
+  salariati: $Enums.DaLunarTrim | null;
+  casaDeMarcat: boolean | null;
   dataExpSediuSocial?: string;
   dataExpMandatAdmin?: string;
   dataCertificatFiscal?: string;
@@ -134,7 +135,7 @@ export default function ClientForm({ initial, onSubmit, submitLabel = "Save" }: 
   // Local state mirrors select components to submit real values via hidden inputs
   const [tip, setTip] = useState<$Enums.Tip>(initial?.tip ?? "SRL");
   const [administratie, setAdministratie] = useState<$Enums.Administratie>(initial?.administratie ?? "SECTOR_5");
-  const [impozit, setImpozit] = useState<$Enums.Impozit>(initial?.impozit ?? "MICRO_1");
+  const [impozit, setImpozit] = useState<$Enums.Impozit>((initial?.impozit ?? "MICRO_1") as $Enums.Impozit);
   const [platitorTVA, setPlatitorTVA] = useState<$Enums.DaLunarTrim>(initial?.platitorTVA ?? "NU");
   const [salariati, setSalariati] = useState<$Enums.DaLunarTrim>(initial?.salariati ?? "NU");
 
@@ -152,7 +153,7 @@ export default function ClientForm({ initial, onSubmit, submitLabel = "Save" }: 
     setDataVectFiscal(initial?.dataVectFiscal ?? "");
     setTip(initial?.tip ?? "SRL");
     setAdministratie(initial?.administratie ?? "SECTOR_5");
-    setImpozit(initial?.impozit ?? "MICRO_1");
+  setImpozit((initial?.impozit ?? "MICRO_1") as $Enums.Impozit);
     setPlatitorTVA(initial?.platitorTVA ?? "NU");
     setSalariati(initial?.salariati ?? "NU");
     setActiva(initial?.activa ?? true);
