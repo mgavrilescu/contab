@@ -352,7 +352,7 @@ async function main() {
         clientId: client.id,
         denumire: 'Bd. Independentei 53, et 2, Focsani',
         deLa: new Date('2020-01-01'),
-        administratie: 'VRANCEA',
+        administratie: 'AJFP_VRANCEA',
         registruUC: true,
         salariati: 0,
         cui: '',
