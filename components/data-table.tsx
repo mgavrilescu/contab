@@ -3,6 +3,7 @@ import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
+  type FilterFn,
   Row as TanstackRow,
   flexRender,
   getCoreRowModel,
@@ -32,6 +33,19 @@ export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComp
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = React.useState<string>("");
 
+  const globalContains: FilterFn<TData> = React.useCallback((row, _columnId, filterValue) => {
+    const query = String(filterValue ?? "").toLowerCase();
+    if (!query) return true;
+    // Search across all original row values so any column can match
+    const vals = Object.values(row.original as Record<string, unknown>);
+    for (const v of vals) {
+      if (v === null || v === undefined) continue;
+      const text = String(v).toLowerCase();
+      if (text.includes(query)) return true;
+    }
+    return false;
+  }, []);
+
   const table = useReactTable({
     data,
     columns,
@@ -43,6 +57,7 @@ export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComp
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: globalContains,
     initialState: { pagination: { pageIndex: 0, pageSize } },
   });
 
