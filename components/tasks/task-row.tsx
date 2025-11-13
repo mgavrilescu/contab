@@ -9,7 +9,10 @@ import type { TaskRow as TRow } from "@/actions/tasks";
 export default function TaskRowComponent<TData>({ row }: { row: Row<TData> }) {
 	const t = row.original as unknown as TRow;
 	return (
-		<TableRow data-state={row.getIsSelected() && "selected"} className={t.done ? "opacity-60" : undefined}>
+		<TableRow
+			data-state={row.getIsSelected() && "selected"}
+			className={t.done ? "bg-red-50 hover:bg-red-100" : undefined}
+		>
 			{row.getVisibleCells().map((cell) => (
 				<TableCell key={cell.id} className="px-3 py-2 md:px-4 border-b align-middle">
 					{cell.column.id === "title"

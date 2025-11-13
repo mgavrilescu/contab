@@ -26,9 +26,10 @@ type DataTableProps<TData, TValue> = {
   pageSize?: number;
   rowComponent?: React.ComponentType<{ row: TanstackRow<TData> }>;
   stickyHeader?: boolean;
+  leftFilters?: React.ReactNode;
 };
 
-export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComponent: RowComponent, stickyHeader = false }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComponent: RowComponent, stickyHeader = false, leftFilters }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = React.useState<string>("");
@@ -64,12 +65,15 @@ export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComp
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <Input
-          placeholder="Search..."
-          value={table.getState().globalFilter ?? ""}
-          onChange={(e) => table.setGlobalFilter(e.target.value)}
-          className="w-64"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Cauta (inclusiv data dd/mm/yyyy)..."
+            value={table.getState().globalFilter ?? ""}
+            onChange={(e) => table.setGlobalFilter(e.target.value)}
+            className="w-64"
+          />
+          {leftFilters}
+        </div>
         <div className="text-xs text-muted-foreground">
           {table.getFilteredRowModel().rows.length} results
         </div>

@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 
 export type TaskFormValues = {
 	id?: number;
@@ -32,6 +39,7 @@ type Props = {
 export default function TaskForm({ initial, options, onSubmit, submitLabel = "Salveaza" }: Props) {
 	const router = useRouter();
 	const [busy, setBusy] = useState(false);
+	const [confirmOpen, setConfirmOpen] = useState(false);
 	const [title, setTitle] = useState(initial?.title ?? "");
 	const [date, setDate] = useState(initial?.date ?? "");
 	const [done, setDone] = useState<boolean>(initial?.done ?? false);
@@ -71,6 +79,27 @@ export default function TaskForm({ initial, options, onSubmit, submitLabel = "Sa
 		}
 	}
 
+			async function finalizeNow() {
+				if (busy || done) return;
+				setBusy(true);
+				try {
+					const fd = new FormData();
+					fd.set("title", title);
+					if (date) fd.set("date", date);
+					fd.set("done", "true");
+					fd.set("notes", notes);
+					fd.set("blocked", blocked);
+					fd.set("objective", objective);
+					fd.set("userId", String(userId));
+					fd.set("clientId", String(clientId));
+					await handleAction(fd);
+					setDone(true);
+				} finally {
+					setBusy(false);
+					setConfirmOpen(false);
+				}
+			}
+
 	return (
 		<form
 			action={(fd: FormData) => {
@@ -87,17 +116,28 @@ export default function TaskForm({ initial, options, onSubmit, submitLabel = "Sa
 			}}
 			className="grid grid-cols-1 md:grid-cols-2 gap-4"
 		>
-			<div className="md:col-span-2">
+					<div className="md:col-span-2">
 				<label className="mb-2 block text-indigo-800">Titlu</label>
-				<Input name="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+						<Input name="title" value={title} onChange={(e) => setTitle(e.target.value)} required disabled={done} />
 			</div>
-			<div>
-				<label className="mb-2 block text-indigo-800">Data</label>
-				<Input type="date" name="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-			</div>
+					<div>
+						<label className="mb-2 block text-indigo-800">Data</label>
+						<Input
+							type="text"
+							name="date"
+							placeholder="dd/mm/yyyy"
+							inputMode="numeric"
+							pattern="^\\d{2}/\\d{2}/\\d{4}$"
+							title="Format acceptat: dd/mm/yyyy"
+							value={date}
+							onChange={(e) => setDate(e.target.value)}
+							required
+							disabled={done}
+						/>
+					</div>
 			<div>
 				<label className="mb-2 block text-indigo-800">User</label>
-				<Select value={String(userId)} onValueChange={(v) => setUserId(Number(v))}>
+						<Select value={String(userId)} onValueChange={(v) => setUserId(Number(v))} disabled={done}>
 					<SelectTrigger><SelectValue placeholder="Selecteaza user" /></SelectTrigger>
 					<SelectContent>
 						{options.users.map((u) => (
@@ -108,7 +148,7 @@ export default function TaskForm({ initial, options, onSubmit, submitLabel = "Sa
 			</div>
 			<div>
 				<label className="mb-2 block text-indigo-800">Client</label>
-				<Select value={String(clientId)} onValueChange={(v) => setClientId(Number(v))}>
+						<Select value={String(clientId)} onValueChange={(v) => setClientId(Number(v))} disabled={done}>
 					<SelectTrigger><SelectValue placeholder="Selecteaza client" /></SelectTrigger>
 					<SelectContent>
 						{options.clients.map((c) => (
@@ -119,26 +159,55 @@ export default function TaskForm({ initial, options, onSubmit, submitLabel = "Sa
 			</div>
 			<div className="md:col-span-2">
 				<label className="mb-2 block text-indigo-800">Obiectiv</label>
-				<Input name="objective" value={objective} onChange={(e) => setObjective(e.target.value)} />
+						<Input name="objective" value={objective} onChange={(e) => setObjective(e.target.value)} disabled={done} />
 			</div>
 			<div className="md:col-span-2">
 				<label className="mb-2 block text-indigo-800">Blocata</label>
-				<Input name="blocked" value={blocked} onChange={(e) => setBlocked(e.target.value)} />
+						<Input name="blocked" value={blocked} onChange={(e) => setBlocked(e.target.value)} disabled={done} />
 			</div>
 			<div className="md:col-span-2">
 				<label className="mb-2 block text-indigo-800">Note</label>
-				<Input name="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+						<Input name="notes" value={notes} onChange={(e) => setNotes(e.target.value)} disabled={done} />
 			</div>
-			<div className="md:col-span-2 mt-2">
-				<input type="hidden" name="done" value={done ? "true" : "false"} />
-				<label className="inline-flex items-center gap-2">
-					<Checkbox checked={done} onCheckedChange={(v) => setDone(Boolean(v))} />
-					<span>Finalizat</span>
-				</label>
-			</div>
-			<div className="md:col-span-2 flex justify-end mt-4">
-				<Button type="submit" disabled={busy} className="bg-indigo-800 text-white hover:bg-indigo-700">{submitLabel}</Button>
-			</div>
+								<div className="md:col-span-2 flex items-center justify-between mt-4">
+									<div>
+										{!done ? (
+											<>
+												<Button
+													type="button"
+													variant="destructive"
+													disabled={busy}
+													onClick={() => setConfirmOpen(true)}
+												>
+													Finalizeaza
+												</Button>
+												<Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+													<DialogContent>
+														<DialogHeader>
+															<DialogTitle>Finalizezi acest task?</DialogTitle>
+															<DialogDescription>
+																Aceasta actiune marcheaza taskul ca finalizat si blocheaza editarea ulterioara. Esti sigur ca vrei sa continui?
+															</DialogDescription>
+														</DialogHeader>
+														<DialogFooter className="gap-2 sm:gap-0">
+															<Button type="button" variant="outline" onClick={() => setConfirmOpen(false)} disabled={busy}>
+																Anuleaza
+															</Button>
+															<Button type="button" variant="destructive" onClick={finalizeNow} disabled={busy}>
+																Da, finalizeaza
+															</Button>
+														</DialogFooter>
+													</DialogContent>
+												</Dialog>
+											</>
+										) : (
+											<span className="text-red-700 font-medium">Finalizat</span>
+										)}
+									</div>
+									{!done && (
+										<Button type="submit" disabled={busy} className="bg-indigo-800 text-white hover:bg-indigo-700">{submitLabel}</Button>
+									)}
+								</div>
 		</form>
 	);
 }

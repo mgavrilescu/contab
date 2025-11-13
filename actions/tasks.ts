@@ -2,6 +2,7 @@
 
 import { PrismaClient } from "@/lib/generated/prisma-client";
 import type { Prisma } from "@/lib/generated/prisma-client";
+import { getSession } from "@/lib/auth";
 import { unstable_noStore as noStore, revalidatePath } from "next/cache";
 
 const prisma = new PrismaClient();
@@ -9,28 +10,50 @@ const prisma = new PrismaClient();
 export type TaskRow = {
 	id: number;
 	title: string;
-	date?: string;
+		date?: string; // dd/mm/yyyy
+		dateTs?: number; // timestamp for sorting
 	done: boolean;
 	user?: string;
+	userId?: number;
 	client?: string;
 	objective?: string;
 	blocked?: string;
 };
 
-const toISODate = (d?: Date | null) => (d ? new Date(d).toISOString().slice(0, 10) : undefined);
+const toDMY = (d?: Date | null) => {
+	if (!d) return undefined;
+	const dd = String(d.getDate()).padStart(2, "0");
+	const mm = String(d.getMonth() + 1).padStart(2, "0");
+	const yy = d.getFullYear();
+	return `${dd}/${mm}/${yy}`;
+};
 
 export async function getTaskRows(): Promise<TaskRow[]> {
 	noStore();
+	const session = await getSession();
+	const role = (session?.user as unknown as { role?: string })?.role;
+	const currentUserId = (session?.user as unknown as { id?: string })?.id;
+
+	const where: Prisma.TaskWhereInput | undefined =
+		role === "ADMIN" || role === "MANAGER"
+			? undefined
+			: currentUserId
+			? { userId: Number(currentUserId) }
+			: { id: -1 }; // no session: return empty
+
 	const tasks = await prisma.task.findMany({
-		orderBy: { date: "desc" },
+		where,
+			orderBy: { date: "desc" },
 		include: { user: true, client: true },
 	});
 	return tasks.map((t) => ({
 		id: t.id,
 		title: t.title,
-		date: toISODate(t.date),
+			date: toDMY(t.date),
+			dateTs: t.date ? new Date(t.date).getTime() : undefined,
 		done: t.done,
 		user: t.user?.name || t.user?.email || undefined,
+			userId: t.userId,
 		client: t.client?.denumire || undefined,
 		objective: t.objective || undefined,
 		blocked: t.blocked || undefined,
@@ -56,7 +79,7 @@ export async function getTask(id: number): Promise<TaskDetails | null> {
 	return {
 		id: t.id,
 		title: t.title,
-		date: toISODate(t.date),
+		date: toDMY(t.date),
 		done: t.done,
 		notes: t.notes ?? undefined,
 		blocked: t.blocked ?? undefined,
@@ -74,6 +97,14 @@ function str(v: FormDataEntryValue | null | undefined): string | undefined {
 }
 function dateStr(v: FormDataEntryValue | null): Date | null {
 	if (typeof v !== "string" || !v) return null;
+	// Accept dd/mm/yyyy or ISO-like yyyy-mm-dd
+	const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+	const m = v.match(ddmmyyyy);
+	if (m) {
+		const [, dd, mm, yyyy] = m;
+		const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+		return isNaN(d.getTime()) ? null : d;
+	}
 	const d = new Date(v);
 	return isNaN(d.getTime()) ? null : d;
 }
@@ -150,7 +181,7 @@ export async function updateTask(id: number, formData: FormData) {
 	return {
 		id: updated.id,
 		title: updated.title,
-		date: toISODate(updated.date),
+		date: toDMY(updated.date),
 		done: updated.done,
 		notes: updated.notes ?? undefined,
 		blocked: updated.blocked ?? undefined,
