@@ -1,19 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { type Row } from "@/actions/clients";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { DataTable, type ColumnDef } from "@/components/data-table";
 import ClientRow from "@/components/clients/client-row";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function ClientsTable({ rows }: { rows: Row[] }) {
-  const [showFormer, setShowFormer] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initialFormer = (searchParams.get("former") ?? "1").toString();
+  const [showFormer, setShowFormer] = useState<boolean>(initialFormer === "1" || initialFormer === "true");
   const [openCabinet, setOpenCabinet] = useState(false);
+
+  // Persist "former" checkbox in URL (?former=1|0)
+  React.useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("former", showFormer ? "1" : "0");
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    router.replace(url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showFormer]);
+
+  // Sync state on back/forward
+  React.useEffect(() => {
+    const f = (searchParams.get("former") ?? "1").toString();
+    const next = f === "1" || f === "true";
+    if (next !== showFormer) setShowFormer(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const data = useMemo(() => (showFormer ? rows : rows.filter((r) => !r.panaLa)), [rows, showFormer]);
 
@@ -138,6 +161,7 @@ export default function ClientsTable({ rows }: { rows: Row[] }) {
             pageSize={10}
             rowComponent={ClientRow}
             stickyHeader
+            searchParamKey="q"
           />
         </div>
       </div>

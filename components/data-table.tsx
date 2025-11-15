@@ -16,6 +16,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 // Re-export ColumnDef so callers can `import type { ColumnDef } from "@/components/data-table"`
 export type { ColumnDef } from "@tanstack/react-table";
@@ -27,12 +28,17 @@ type DataTableProps<TData, TValue> = {
   rowComponent?: React.ComponentType<{ row: TanstackRow<TData> }>;
   stickyHeader?: boolean;
   leftFilters?: React.ReactNode;
+  searchParamKey?: string; // when provided, persist the global search value in the URL under this key
 };
 
-export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComponent: RowComponent, stickyHeader = false, leftFilters }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComponent: RowComponent, stickyHeader = false, leftFilters, searchParamKey }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const initialSearch = React.useMemo(() => (searchParamKey ? (searchParams.get(searchParamKey) ?? "") : ""), [searchParams, searchParamKey]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState<string>("");
+  const [globalFilter, setGlobalFilter] = React.useState<string>(initialSearch);
 
   const globalContains: FilterFn<TData> = React.useCallback((row, _columnId, filterValue) => {
     const query = String(filterValue ?? "").toLowerCase();
@@ -61,6 +67,28 @@ export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComp
     globalFilterFn: globalContains,
     initialState: { pagination: { pageIndex: 0, pageSize } },
   });
+
+  // Persist global search to URL
+  React.useEffect(() => {
+    if (!searchParamKey) return;
+    const params = new URLSearchParams(searchParams.toString());
+    const val = table.getState().globalFilter ?? "";
+    if (!val) params.delete(searchParamKey); else params.set(searchParamKey, val);
+    const qs = params.toString();
+    const url = qs ? `${pathname}?${qs}` : pathname;
+    router.replace(url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParamKey, table.getState().globalFilter]);
+
+  // Sync table state if URL changes externally (back/forward)
+  React.useEffect(() => {
+    if (!searchParamKey) return;
+    const val = searchParams.get(searchParamKey) ?? "";
+    if (val !== (table.getState().globalFilter ?? "")) {
+      table.setGlobalFilter(val);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, searchParamKey]);
 
   return (
     <div className="space-y-3">
