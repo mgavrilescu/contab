@@ -7,6 +7,7 @@ import { DataTable, type ColumnDef } from "@/components/data-table";
 import TaskRowComponent from "@/components/tasks/task-row";
 import type { TaskRow } from "@/actions/tasks";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import MonthPicker from "@/components/month-picker";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type UserOpt = { id: number; label: string };
@@ -17,26 +18,31 @@ export default function TasksTable({ rows, users }: { rows: TaskRow[]; users: Us
   const searchParams = useSearchParams();
   const initialUser = searchParams.get("user") ?? "all";
   const initialStatus = searchParams.get("status") ?? "all";
+  const initialMonth = searchParams.get("month") ?? "";
   const [userFilter, setUserFilter] = useState<string>(initialUser);
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+  const [month, setMonth] = useState<string>(initialMonth); // YYYY-MM
 
   // Keep URL in sync when filters change
   React.useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (userFilter === "all") params.delete("user"); else params.set("user", userFilter);
     if (statusFilter === "all") params.delete("status"); else params.set("status", statusFilter);
+    if (!month) params.delete("month"); else params.set("month", month);
     const qs = params.toString();
     const url = qs ? `${pathname}?${qs}` : pathname;
     router.replace(url);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userFilter, statusFilter]);
+  }, [userFilter, statusFilter, month]);
 
   // Update state if user navigates via back/forward and params change externally
   React.useEffect(() => {
     const u = searchParams.get("user") ?? "all";
     const s = searchParams.get("status") ?? "all";
+    const m = searchParams.get("month") ?? "";
     if (u !== userFilter) setUserFilter(u);
     if (s !== statusFilter) setStatusFilter(s);
+    if (m !== month) setMonth(m);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -56,6 +62,14 @@ export default function TasksTable({ rows, users }: { rows: TaskRow[]; users: Us
         accessorKey: "date",
         header: "Data",
         enableSorting: true,
+        cell: ({ row }) => {
+          const ts = row.original.dateTs;
+          if (!ts) return "";
+          const d = new Date(ts);
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const yy = d.getFullYear();
+          return `${mm}/${yy}`;
+        },
         sortingFn: (a, b) => {
           const at = (a.original as TaskRow).dateTs ?? 0;
           const bt = (b.original as TaskRow).dateTs ?? 0;
@@ -82,8 +96,18 @@ export default function TasksTable({ rows, users }: { rows: TaskRow[]; users: Us
     } else if (statusFilter === "nefinalizat") {
       out = out.filter((r) => r.done === false);
     }
+    if (month) {
+      const [yy, mm] = month.split("-");
+      const y = Number(yy);
+      const m = Number(mm) - 1; // 0-based
+      if (!Number.isNaN(y) && !Number.isNaN(m)) {
+        const start = new Date(y, m, 1).getTime();
+        const end = new Date(y, m + 1, 1).getTime();
+        out = out.filter((r) => (r.dateTs ?? 0) >= start && (r.dateTs ?? 0) < end);
+      }
+    }
     return out;
-  }, [rows, userFilter, statusFilter]);
+  }, [rows, userFilter, statusFilter, month]);
 
   return (
     <div className="p-6 space-y-4">
@@ -99,6 +123,21 @@ export default function TasksTable({ rows, users }: { rows: TaskRow[]; users: Us
         pageSize={10}
         rowComponent={TaskRowComponent}
         stickyHeader
+        primaryControl={
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Luna</span>
+            <MonthPicker value={month || undefined} onChange={(val) => setMonth(val ?? "")} buttonClassName="h-8" />
+            {month && (
+              <button
+                type="button"
+                onClick={() => setMonth("")}
+                className="h-8 px-3 rounded border text-sm hover:bg-muted"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        }
         leftFilters={
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">

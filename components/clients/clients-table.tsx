@@ -53,6 +53,17 @@ export default function ClientsTable({ rows }: { rows: Row[] }) {
     },
     { accessorKey: "tip", header: "Tip", enableSorting: true },
     {
+      id: "users",
+      header: "Useri",
+      enableSorting: false,
+      cell: ({ row }) =>
+        row.original.users && row.original.users.length ? (
+          <div className="max-w-[16rem] truncate" title={row.original.users.join(", ")}>{row.original.users.join(", ")}</div>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
+    {
       accessorKey: "deLa",
       header: () => <div className="w-36 min-w-[9rem]">De la</div>,
       enableSorting: true,

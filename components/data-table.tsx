@@ -29,9 +29,11 @@ type DataTableProps<TData, TValue> = {
   stickyHeader?: boolean;
   leftFilters?: React.ReactNode;
   searchParamKey?: string; // when provided, persist the global search value in the URL under this key
+  primaryControl?: React.ReactNode; // replaces the default search input when provided
+  showGlobalSearch?: boolean; // toggles visibility of the default global search; defaults to true when primaryControl is not set
 };
 
-export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComponent: RowComponent, stickyHeader = false, leftFilters, searchParamKey }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComponent: RowComponent, stickyHeader = false, leftFilters, searchParamKey, primaryControl, showGlobalSearch = undefined }: DataTableProps<TData, TValue>) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -94,12 +96,16 @@ export function DataTable<TData, TValue>({ columns, data, pageSize = 10, rowComp
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Input
-            placeholder="Cauta (inclusiv data dd/mm/yyyy)..."
-            value={table.getState().globalFilter ?? ""}
-            onChange={(e) => table.setGlobalFilter(e.target.value)}
-            className="w-64"
-          />
+          {primaryControl ?? (
+            (showGlobalSearch ?? true) && (
+              <Input
+                placeholder="Cauta (inclusiv data dd/mm/yyyy)..."
+                value={table.getState().globalFilter ?? ""}
+                onChange={(e) => table.setGlobalFilter(e.target.value)}
+                className="w-64"
+              />
+            )
+          )}
           {leftFilters}
         </div>
         <div className="text-xs text-muted-foreground">

@@ -10,6 +10,7 @@ export type Row = {
   tip: string
   deLa?: string
   panaLa?: string
+  users?: string[]
   tarifConta?: number
   tarifBilant?: number
   contractGen?: string
@@ -28,6 +29,7 @@ export async function getClientRows(): Promise<Row[]> {
     include: {
       detalii: true,
       puncteDeLucru: { select: { deLa: true, panaLa: true } },
+      users: { select: { user: { select: { id: true, name: true, email: true } } } },
     },
   })
 
@@ -57,6 +59,12 @@ export async function getClientRows(): Promise<Row[]> {
       tip: c.tip,
       deLa: toISODate(earliestDeLa ?? c.dataVerificarii),
       panaLa: toISODate(latestPanaLa ?? null),
+      users: c.users
+        ? c.users
+            .map((uc) => uc.user.name || uc.user.email)
+            .filter((s): s is string => !!s)
+            .sort((a, b) => a.localeCompare(b))
+        : undefined,
       tarifConta: undefined,
       tarifBilant: undefined,
       contractGen: undefined,

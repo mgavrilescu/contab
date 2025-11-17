@@ -9,6 +9,8 @@ import { getClientPuncteDeLucru, upsertClientPunctDeLucru, deleteClientPunctDeLu
 import ClientPunctPanels from "@/components/clients/client-punct-panels";
 import { getClientIstoricList, upsertClientIstoric, deleteClientIstoric } from "@/actions/client-istoric";
 import ClientIstoricPanels from "@/components/clients/client-istoric-panels";
+import { addUserToClient, getClientUserAssignments, removeUserFromClient } from "@/actions/client-users";
+import ClientUsersPanel from "@/components/clients/client-users-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +21,11 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
 
   const client = await getClient(id);
   if (!client) return notFound();
-  const [detalii, puncte, istoricList] = await Promise.all([
+  const [detalii, puncte, istoricList, userAssignments] = await Promise.all([
     getClientDetalii(id),
     getClientPuncteDeLucru(id),
     getClientIstoricList(id),
+    getClientUserAssignments(id),
   ]);
 
   async function onSubmit(fd: FormData) {
@@ -40,6 +43,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
           <TabsTrigger value="other">Detalii</TabsTrigger>
           <TabsTrigger value="punct">Punct de lucru</TabsTrigger>
           <TabsTrigger value="istoric">Istoric</TabsTrigger>
+          <TabsTrigger value="users">Useri</TabsTrigger>
         </TabsList>
         <TabsContent value="form" className="pt-4" forceMount>
           <ClientForm initial={client} onSubmit={onSubmit} submitLabel="Salveaza" />
@@ -83,6 +87,20 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
             onDelete={async (rowId: number) => {
               "use server";
               await deleteClientIstoric(id, rowId);
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="users" className="pt-4" forceMount>
+          <ClientUsersPanel
+            assigned={userAssignments.assigned}
+            available={userAssignments.available}
+            onAdd={async (userId: number) => {
+              "use server";
+              return await addUserToClient(id, userId);
+            }}
+            onRemove={async (userId: number) => {
+              "use server";
+              return await removeUserFromClient(id, userId);
             }}
           />
         </TabsContent>
