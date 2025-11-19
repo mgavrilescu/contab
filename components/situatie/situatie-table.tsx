@@ -2,7 +2,6 @@
 import * as React from "react";
 import { DataTable, type ColumnDef } from "@/components/data-table";
 import type { SituatieRow } from "@/actions/situatie";
-import { Checkbox } from "@/components/ui/checkbox";
 import MonthPicker from "@/components/month-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SituatieRowComponent from "@/components/situatie/situatie-row";
@@ -18,6 +17,7 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
   const columns = React.useMemo<ColumnDef<SituatieRow>[]>(
     () => [
       { accessorKey: "firma", header: "Firma", enableSorting: true },
+  { accessorKey: "user", header: "User", enableSorting: false, cell: ({ row }) => (<span>{row.original.user ?? ""}</span>) },
       {
         accessorKey: "data",
         header: "Data",
@@ -33,11 +33,20 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         accessorKey: "avemActe",
         header: "Avem acte",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Checkbox checked={row.original.avemActe} disabled aria-label="Avem acte" />
-            <span className="text-xs text-muted-foreground truncate" title={row.original.avemActeUser ?? ""}>
-              {row.original.avemActeUser ?? ""}
-            </span>
+          <div className="flex items-center">
+            {row.original.avemActeTaskId ? (
+              <a
+                href={`/taskuri/edit/${row.original.avemActeTaskId}`}
+                className="text-xs font-medium underline"
+                title={row.original.avemActeNotes ?? (row.original.avemActe ? "Finalizat" : "Ne-finalizat")}
+              >
+                {row.original.avemActeNotes ?? (row.original.avemActe ? "DA" : "NO")}
+              </a>
+            ) : (
+              <span className="text-xs font-medium truncate" title={row.original.avemActeNotes ?? (row.original.avemActe ? "Finalizat" : "Ne-finalizat") }>
+                {row.original.avemActeNotes ?? (row.original.avemActe ? "DA" : "NO")}
+              </span>
+            )}
           </div>
         ),
       },
@@ -45,11 +54,20 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         accessorKey: "introdusActe",
         header: "Introdus acte",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Checkbox checked={row.original.introdusActe} disabled aria-label="Introdus acte" />
-            <span className="text-xs text-muted-foreground truncate" title={row.original.introdusActeUser ?? ""}>
-              {row.original.introdusActeUser ?? ""}
-            </span>
+          <div className="flex items-center">
+            {row.original.introdusActeTaskId ? (
+              <a
+                href={`/taskuri/edit/${row.original.introdusActeTaskId}`}
+                className="text-xs font-medium underline"
+                title={row.original.introdusActeNotes ?? (row.original.introdusActe ? "Finalizat" : "Ne-finalizat")}
+              >
+                {row.original.introdusActeNotes ?? (row.original.introdusActe ? "DA" : "NO")}
+              </a>
+            ) : (
+              <span className="text-xs font-medium truncate" title={row.original.introdusActeNotes ?? (row.original.introdusActe ? "Finalizat" : "Ne-finalizat") }>
+                {row.original.introdusActeNotes ?? (row.original.introdusActe ? "DA" : "NO")}
+              </span>
+            )}
           </div>
         ),
       },
@@ -57,11 +75,20 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         accessorKey: "verificareLuna",
         header: "Verificat acte",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Checkbox checked={row.original.verificareLuna} disabled aria-label="Verificat acte" />
-            <span className="text-xs text-muted-foreground truncate" title={row.original.verificareLunaUser ?? ""}>
-              {row.original.verificareLunaUser ?? ""}
-            </span>
+          <div className="flex items-center">
+            {row.original.verificareLunaTaskId ? (
+              <a
+                href={`/taskuri/edit/${row.original.verificareLunaTaskId}`}
+                className="text-xs font-medium underline"
+                title={row.original.verificareLunaNotes ?? (row.original.verificareLuna ? "Finalizat" : "Ne-finalizat")}
+              >
+                {row.original.verificareLunaNotes ?? (row.original.verificareLuna ? "DA" : "NO")}
+              </a>
+            ) : (
+              <span className="text-xs font-medium truncate" title={row.original.verificareLunaNotes ?? (row.original.verificareLuna ? "Finalizat" : "Ne-finalizat") }>
+                {row.original.verificareLunaNotes ?? (row.original.verificareLuna ? "DA" : "NO")}
+              </span>
+            )}
           </div>
         ),
       },
@@ -69,11 +96,20 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         accessorKey: "generatDeclaratii",
         header: "Generat declaratii",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Checkbox checked={row.original.generatDeclaratii} disabled aria-label="Generat declaratii" />
-            <span className="text-xs text-muted-foreground truncate" title={row.original.generatDeclaratiiUser ?? ""}>
-              {row.original.generatDeclaratiiUser ?? ""}
-            </span>
+          <div className="flex items-center">
+            {row.original.generatDeclaratiiTaskId ? (
+              <a
+                href={`/taskuri/edit/${row.original.generatDeclaratiiTaskId}`}
+                className="text-xs font-medium underline"
+                title={row.original.generatDeclaratiiNotes ?? (row.original.generatDeclaratii ? "Finalizat" : "Ne-finalizat")}
+              >
+                {row.original.generatDeclaratiiNotes ?? (row.original.generatDeclaratii ? "DA" : "NO")}
+              </a>
+            ) : (
+              <span className="text-xs font-medium truncate" title={row.original.generatDeclaratiiNotes ?? (row.original.generatDeclaratii ? "Finalizat" : "Ne-finalizat") }>
+                {row.original.generatDeclaratiiNotes ?? (row.original.generatDeclaratii ? "DA" : "NO")}
+              </span>
+            )}
           </div>
         ),
       },
@@ -81,11 +117,20 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         accessorKey: "depusDeclaratii",
         header: "Depus declaratii",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Checkbox checked={row.original.depusDeclaratii} disabled aria-label="Depus declaratii" />
-            <span className="text-xs text-muted-foreground truncate" title={row.original.depusDeclaratiiUser ?? ""}>
-              {row.original.depusDeclaratiiUser ?? ""}
-            </span>
+          <div className="flex items-center">
+            {row.original.depusDeclaratiiTaskId ? (
+              <a
+                href={`/taskuri/edit/${row.original.depusDeclaratiiTaskId}`}
+                className="text-xs font-medium underline"
+                title={row.original.depusDeclaratiiNotes ?? (row.original.depusDeclaratii ? "Finalizat" : "Ne-finalizat")}
+              >
+                {row.original.depusDeclaratiiNotes ?? (row.original.depusDeclaratii ? "DA" : "NO")}
+              </a>
+            ) : (
+              <span className="text-xs font-medium truncate" title={row.original.depusDeclaratiiNotes ?? (row.original.depusDeclaratii ? "Finalizat" : "Ne-finalizat") }>
+                {row.original.depusDeclaratiiNotes ?? (row.original.depusDeclaratii ? "DA" : "NO")}
+              </span>
+            )}
           </div>
         ),
       },
@@ -93,11 +138,20 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         accessorKey: "lunaPrintata",
         header: "Luna printata",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Checkbox checked={row.original.lunaPrintata} disabled aria-label="Luna printata" />
-            <span className="text-xs text-muted-foreground truncate" title={row.original.lunaPrintataUser ?? ""}>
-              {row.original.lunaPrintataUser ?? ""}
-            </span>
+          <div className="flex items-center">
+            {row.original.lunaPrintataTaskId ? (
+              <a
+                href={`/taskuri/edit/${row.original.lunaPrintataTaskId}`}
+                className="text-xs font-medium underline"
+                title={row.original.lunaPrintataNotes ?? (row.original.lunaPrintata ? "Finalizat" : "Ne-finalizat")}
+              >
+                {row.original.lunaPrintataNotes ?? (row.original.lunaPrintata ? "DA" : "NO")}
+              </a>
+            ) : (
+              <span className="text-xs font-medium truncate" title={row.original.lunaPrintataNotes ?? (row.original.lunaPrintata ? "Finalizat" : "Ne-finalizat") }>
+                {row.original.lunaPrintataNotes ?? (row.original.lunaPrintata ? "DA" : "NO")}
+              </span>
+            )}
           </div>
         ),
       },

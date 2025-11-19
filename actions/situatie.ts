@@ -13,18 +13,37 @@ export type SituatieRow = {
   tip: string;
   data: string; // dd/mm/yyyy (first day of month)
   dateTs: number; // timestamp for sorting
+  user?: string; // first user found among tasks for that month
   avemActe: boolean;
   avemActeUser?: string;
+  avemActeNotes?: string;
+  avemActeHasTask?: boolean;
+  avemActeTaskId?: number;
   introdusActe: boolean;
   introdusActeUser?: string;
+  introdusActeNotes?: string;
+  introdusActeHasTask?: boolean;
+  introdusActeTaskId?: number;
   verificareLuna: boolean;
   verificareLunaUser?: string;
+  verificareLunaNotes?: string;
+  verificareLunaHasTask?: boolean;
+  verificareLunaTaskId?: number;
   generatDeclaratii: boolean;
   generatDeclaratiiUser?: string;
+  generatDeclaratiiNotes?: string;
+  generatDeclaratiiHasTask?: boolean;
+  generatDeclaratiiTaskId?: number;
   depusDeclaratii: boolean;
   depusDeclaratiiUser?: string;
+  depusDeclaratiiNotes?: string;
+  depusDeclaratiiHasTask?: boolean;
+  depusDeclaratiiTaskId?: number;
   lunaPrintata: boolean;
   lunaPrintataUser?: string;
+  lunaPrintataNotes?: string;
+  lunaPrintataHasTask?: boolean;
+  lunaPrintataTaskId?: number;
 };
 
 const toDMY = (d: Date) => {
@@ -94,43 +113,83 @@ export async function getSituatieRows(): Promise<SituatieRow[]> {
         tip: String(t.client?.tip ?? ""),
         data: toDMY(monthStart),
         dateTs: monthStart.getTime(),
+        user: undefined,
         avemActe: false,
         avemActeUser: undefined,
+        avemActeNotes: undefined,
+        avemActeHasTask: false,
+        avemActeTaskId: undefined,
         introdusActe: false,
         introdusActeUser: undefined,
+        introdusActeNotes: undefined,
+        introdusActeHasTask: false,
+        introdusActeTaskId: undefined,
         verificareLuna: false,
         verificareLunaUser: undefined,
+        verificareLunaNotes: undefined,
+        verificareLunaHasTask: false,
+        verificareLunaTaskId: undefined,
         generatDeclaratii: false,
         generatDeclaratiiUser: undefined,
+        generatDeclaratiiNotes: undefined,
+        generatDeclaratiiHasTask: false,
+        generatDeclaratiiTaskId: undefined,
         depusDeclaratii: false,
         depusDeclaratiiUser: undefined,
+        depusDeclaratiiNotes: undefined,
+        depusDeclaratiiHasTask: false,
+        depusDeclaratiiTaskId: undefined,
         lunaPrintata: false,
         lunaPrintataUser: undefined,
+        lunaPrintataNotes: undefined,
+        lunaPrintataHasTask: false,
+        lunaPrintataTaskId: undefined,
       };
     if (!existing) byClientMonth.set(key, base);
 
     if (t.title) {
       const label = t.user?.name || t.user?.email || undefined;
+      if (!base.user && label) {
+        base.user = label; // capture first user encountered for this month
+      }
       const stages = matchStage(t.title);
       for (const s of stages) {
         if (s === "avemActe") {
+          base.avemActeHasTask = true;
+          if (base.avemActeTaskId === undefined) base.avemActeTaskId = t.id;
           if (t.done) base.avemActe = true;
           base.avemActeUser = label ?? base.avemActeUser;
+          if (!base.avemActeNotes && t.notes) base.avemActeNotes = t.notes;
         } else if (s === "introdusActe") {
+          base.introdusActeHasTask = true;
+          if (base.introdusActeTaskId === undefined) base.introdusActeTaskId = t.id;
           if (t.done) base.introdusActe = true;
           base.introdusActeUser = label ?? base.introdusActeUser;
+          if (!base.introdusActeNotes && t.notes) base.introdusActeNotes = t.notes;
         } else if (s === "verificareLuna") {
+          base.verificareLunaHasTask = true;
+          if (base.verificareLunaTaskId === undefined) base.verificareLunaTaskId = t.id;
           if (t.done) base.verificareLuna = true;
           base.verificareLunaUser = label ?? base.verificareLunaUser;
+          if (!base.verificareLunaNotes && t.notes) base.verificareLunaNotes = t.notes;
         } else if (s === "generatDeclaratii") {
+          base.generatDeclaratiiHasTask = true;
+          if (base.generatDeclaratiiTaskId === undefined) base.generatDeclaratiiTaskId = t.id;
           if (t.done) base.generatDeclaratii = true;
           base.generatDeclaratiiUser = label ?? base.generatDeclaratiiUser;
+          if (!base.generatDeclaratiiNotes && t.notes) base.generatDeclaratiiNotes = t.notes;
         } else if (s === "depusDeclaratii") {
+          base.depusDeclaratiiHasTask = true;
+          if (base.depusDeclaratiiTaskId === undefined) base.depusDeclaratiiTaskId = t.id;
           if (t.done) base.depusDeclaratii = true;
           base.depusDeclaratiiUser = label ?? base.depusDeclaratiiUser;
+          if (!base.depusDeclaratiiNotes && t.notes) base.depusDeclaratiiNotes = t.notes;
         } else if (s === "lunaPrintata") {
+          base.lunaPrintataHasTask = true;
+          if (base.lunaPrintataTaskId === undefined) base.lunaPrintataTaskId = t.id;
           if (t.done) base.lunaPrintata = true;
           base.lunaPrintataUser = label ?? base.lunaPrintataUser;
+          if (!base.lunaPrintataNotes && t.notes) base.lunaPrintataNotes = t.notes;
         }
       }
     }

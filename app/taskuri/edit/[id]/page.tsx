@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import BackButton from "../../../../components/ui/back-button";
 import { getTask, updateTask, createTask, getTaskFormOptions } from "@/actions/tasks";
 import TaskForm from "@/components/tasks/task-form";
 import PageTitleSetter from "@/components/page-title-setter";
@@ -28,6 +29,7 @@ export default async function EditTaskPage({ params }: { params: Promise<{ id: s
 
 	return (
 		<div className="p-6 space-y-4">
+			<BackButton className="-mt-2" />
 			<PageTitleSetter title={`Taskuri / ${isCreate ? "Nou" : task?.title || "Edit"}`} />
 			<h1 className="text-2xl font-semibold">{isCreate ? "Task nou" : `Editeaza: ${task?.title}`}</h1>
 			<TaskForm initial={task ?? undefined} options={options} onSubmit={onSubmit} submitLabel={isCreate ? "Creeaza" : "Salveaza"} />
