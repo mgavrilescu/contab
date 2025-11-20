@@ -3,7 +3,8 @@ import * as React from "react";
 import { DataTable, type ColumnDef } from "@/components/data-table";
 import type { SituatieRow } from "@/actions/situatie";
 import MonthPicker from "@/components/month-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// Removed Select in favor of custom autocomplete
+import FirmaAutocomplete from "@/components/situatie/firma-autocomplete";
 import SituatieRowComponent from "@/components/situatie/situatie-row";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -34,7 +35,7 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         header: "Avem acte",
         cell: ({ row }) => (
           <div className="flex items-center">
-            {row.original.avemActeTaskId ? (
+            {!row.original.avemActeHasTask ? null : row.original.avemActeTaskId ? (
               <a
                 href={`/taskuri/edit/${row.original.avemActeTaskId}`}
                 className="text-xs font-medium underline"
@@ -55,7 +56,7 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         header: "Introdus acte",
         cell: ({ row }) => (
           <div className="flex items-center">
-            {row.original.introdusActeTaskId ? (
+            {!row.original.introdusActeHasTask ? null : row.original.introdusActeTaskId ? (
               <a
                 href={`/taskuri/edit/${row.original.introdusActeTaskId}`}
                 className="text-xs font-medium underline"
@@ -76,7 +77,7 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         header: "Verificat acte",
         cell: ({ row }) => (
           <div className="flex items-center">
-            {row.original.verificareLunaTaskId ? (
+            {!row.original.verificareLunaHasTask ? null : row.original.verificareLunaTaskId ? (
               <a
                 href={`/taskuri/edit/${row.original.verificareLunaTaskId}`}
                 className="text-xs font-medium underline"
@@ -97,7 +98,7 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         header: "Generat declaratii",
         cell: ({ row }) => (
           <div className="flex items-center">
-            {row.original.generatDeclaratiiTaskId ? (
+            {!row.original.generatDeclaratiiHasTask ? null : row.original.generatDeclaratiiTaskId ? (
               <a
                 href={`/taskuri/edit/${row.original.generatDeclaratiiTaskId}`}
                 className="text-xs font-medium underline"
@@ -118,7 +119,7 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         header: "Depus declaratii",
         cell: ({ row }) => (
           <div className="flex items-center">
-            {row.original.depusDeclaratiiTaskId ? (
+            {!row.original.depusDeclaratiiHasTask ? null : row.original.depusDeclaratiiTaskId ? (
               <a
                 href={`/taskuri/edit/${row.original.depusDeclaratiiTaskId}`}
                 className="text-xs font-medium underline"
@@ -139,7 +140,7 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         header: "Luna printata",
         cell: ({ row }) => (
           <div className="flex items-center">
-            {row.original.lunaPrintataTaskId ? (
+            {!row.original.lunaPrintataHasTask ? null : row.original.lunaPrintataTaskId ? (
               <a
                 href={`/taskuri/edit/${row.original.lunaPrintataTaskId}`}
                 className="text-xs font-medium underline"
@@ -209,26 +210,11 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         primaryControl={
           <div className="flex items-center gap-2">
             <label className="text-sm text-muted-foreground">Firma</label>
-            <Select value={firma || undefined} onValueChange={(v) => setFirma(v === "__all__" ? "" : v)}>
-              <SelectTrigger className="w-64 h-8">
-                <SelectValue placeholder="Toate firmele" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">Toate firmele</SelectItem>
-                {Array.from(new Set(rows.map((r) => r.firma))).sort((a, b) => a.localeCompare(b, "ro")).map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {firma && (
-              <button
-                type="button"
-                onClick={() => setFirma("")}
-                className="h-8 px-3 rounded border text-sm hover:bg-muted"
-              >
-                Reset
-              </button>
-            )}
+            <FirmaAutocomplete
+              firms={Array.from(new Set(rows.map((r) => r.firma)))}
+              value={firma}
+              onChange={(v) => setFirma(v)}
+            />
           </div>
         }
         leftFilters={
