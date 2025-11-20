@@ -23,6 +23,13 @@ export default function SituatieTable({ rows }: { rows: SituatieRow[] }) {
         accessorKey: "data",
         header: "Data",
         enableSorting: true,
+        cell: ({ row }) => {
+          const ts = row.original.dateTs;
+          const d = new Date(ts);
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const yyyy = d.getFullYear();
+          return <span>{mm}/{yyyy}</span>;
+        },
         sortingFn: (a, b) => {
           const at = (a.original as SituatieRow).dateTs ?? 0;
           const bt = (b.original as SituatieRow).dateTs ?? 0;
