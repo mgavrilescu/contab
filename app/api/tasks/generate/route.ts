@@ -1,10 +1,49 @@
 import { PrismaClient, Frequency, Client, RuleCondition } from '@/lib/generated/prisma-client';
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+async function checkBasicAuth(request: Request): Promise<boolean> {
+  const authHeader = request.headers.get('authorization');
+  
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return false;
+  }
+
+  const base64Credentials = authHeader.slice(6);
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+  const [email, password] = credentials.split(':');
+
+  // Find user by email with ADMIN role
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user || user.rol !== 'ADMIN' || !user.password) {
+    return false;
+  }
+
+  // Verify password
+  const isValidPassword = await bcrypt.compare(password, user.password);
+  return isValidPassword;
+}
+
 export async function POST(request: Request) {
   try {
+    // Check Basic Auth
+    const isAuthenticated = await checkBasicAuth(request);
+    
+    if (!isAuthenticated) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Admin credentials required' },
+        { 
+          status: 401,
+          headers: { 'WWW-Authenticate': 'Basic realm="Task Generation API"' }
+        }
+      );
+    }
+
     // Parse and validate month and year from URL query parameters
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
