@@ -3,76 +3,68 @@ import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-function matchesAllConditions(client: Client, conditions: RuleCondition[]): boolean {
-  return conditions.every((c) => {
-    switch (c.operator) {
-      case 'EQUALS':
-        return (client as unknown as Record<string, unknown>)[c.field] === c.value;
-      case 'IN':
-        return c.value.split(',').includes(String((client as unknown as Record<string, unknown>)[c.field]));
-      case 'IS_TRUE':
-        return Boolean((client as unknown as Record<string, unknown>)[c.field]);
-      default:
-        return false;
-    }
-  });
-}
-
 export async function POST(request: Request) {
   try {
-    const { frequency } = await request.json();
-
-    if (!frequency || !Object.values(Frequency).includes(frequency)) {
-      return NextResponse.json({ error: 'Invalid or missing frequency parameter' }, { status: 400 });
+    // Parse and validate month and year from URL query parameters
+    const { searchParams } = new URL(request.url);
+    const month = searchParams.get('month');
+    const year = searchParams.get('year');
+    
+    if (!month || !year) {
+      return NextResponse.json({ error: 'Missing month or year parameter' }, { status: 400 });
     }
-
-    // Fetch active rules with the specified frequency
-    const rules = await prisma.rule.findMany({
-      where: {
-        frequency,
-        active: true,
-      },
-      include: {
-        conditions: true,
-      },
-    });
-
-    if (rules.length === 0) {
-      return NextResponse.json({ message: 'No rules found for the specified frequency.' });
+    
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+    
+    if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+      return NextResponse.json({ error: 'Invalid month. Must be between 1 and 12' }, { status: 400 });
     }
-
-    // Generate tasks based on rules
+    
+    if (isNaN(yearNum) || yearNum < 1900 || yearNum > 2100) {
+      return NextResponse.json({ error: 'Invalid year' }, { status: 400 });
+    }
+    
+    // Create date for the first day of the specified month and year (in UTC)
+    const taskDate = new Date(Date.UTC(yearNum, monthNum - 1, 1));
+    
+    // Fetch all clients
+    const clients = await prisma.client.findMany();
     const tasks = [];
-    for (const rule of rules) {
-      const clients = await prisma.client.findMany();
 
-      for (const client of clients) {
-        if (matchesAllConditions(client, rule.conditions)) {
-          // Fetch users of type USER assigned to the client
-          const assignedUsers = await prisma.userClient.findMany({
-            where: {
+    for (const client of clients) {
+      // Get all users assigned to this client through UserClient table
+      const userClients = await prisma.userClient.findMany({
+        where: {
+          clientId: client.id,
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      // Find a USER role user first, if not found, then find a MANAGER role user
+      let assignedUser = userClients.find(uc => uc.user.rol === 'USER')?.user;
+      
+      if (!assignedUser) {
+        assignedUser = userClients.find(uc => uc.user.rol === 'MANAGER')?.user;
+      }
+
+      // Only create tasks if a user was found
+      if (assignedUser) {
+        const taskTitles = ['Avem acte', 'Introdus acte', 'Verificat acte', 'Luna printata'];
+        
+        for (const title of taskTitles) {
+          const task = await prisma.task.create({
+            data: {
+              title,
+              notes: null,
+              date: taskDate,
               clientId: client.id,
-              user: {
-                rol: 'USER',
-              },
-            },
-            include: {
-              user: true,
+              userId: assignedUser.id,
             },
           });
-
-          for (const { user } of assignedUsers) {
-            const task = await prisma.task.create({
-              data: {
-                title: rule.taskTitle,
-                notes: rule.taskNotes,
-                date: new Date(),
-                clientId: client.id,
-                userId: user.id, // Assign task to the user
-              },
-            });
-            tasks.push(task);
-          }
+          tasks.push(task);
         }
       }
     }
